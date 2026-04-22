@@ -50,11 +50,7 @@ class RawToastState extends State<RawToast> {
           ),
           curve: widget.animationCurve ?? Curves.elasticOut,
         ),
-        FadeEffect(
-          duration: widget.animationDuration,
-          begin: 0,
-          end: 1,
-        ),
+        FadeEffect(duration: widget.animationDuration, begin: 0, end: 1),
         if (widget.autoDismiss)
           SlideEffect(
             delay: widget.snackbarDuration,
@@ -81,17 +77,17 @@ class RawToastState extends State<RawToast> {
   @override
   Widget build(BuildContext context) {
     return AnimatedPositioned(
-      duration: Duration(
-        milliseconds: widget.animationDuration.inMilliseconds,
-      ),
+      duration: Duration(milliseconds: widget.animationDuration.inMilliseconds),
       key: positionedKey,
       curve: Curves.easeOutBack,
-      top: widget.toastPosition == ToastPosition.top
-          ? widget.getPosition() + 55
-          : null,
-      bottom: widget.toastPosition == ToastPosition.bottom
-          ? widget.getPosition() + 60
-          : null,
+      top:
+          widget.toastPosition == ToastPosition.top
+              ? widget.getPosition() + 55
+              : null,
+      bottom:
+          widget.toastPosition == ToastPosition.bottom
+              ? widget.getPosition() + 60
+              : null,
       left: 0,
       right: 0,
       child: Material(
@@ -106,4 +102,3 @@ class RawToastState extends State<RawToast> {
     );
   }
 }
-

@@ -1,32 +1,40 @@
 import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
 
-
 import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
+class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final emailController = TextEditingController();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
 
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _mobileController = TextEditingController();
+
+  @override
+  void dispose() {
+    _mobileController.dispose();
+    super.dispose();
+  }
+
+  void _handleForgotPassword() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    context.read<AuthProvider>().forgotPassword(
+      context: context,
+      mobile: _mobileController.text.trim(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isLoading = context.select((AuthProvider p) => p.isLoading);
 
     final cs = context.theme.colorScheme;
     final tt = context.theme.textTheme;
-
-    Future<void> handleForgotPassword() async {
-      if (!(formKey.currentState?.validate() ?? false)) {
-        return;
-      }
-
-      context.read<AuthProvider>().forgotPassword(
-        context: context, 
-        email: emailController.text,
-      );
-    }
 
     return Scaffold(
       appBar: const AppTopBar(title: ''),
@@ -40,41 +48,46 @@ class ForgotPasswordScreen extends StatelessWidget {
                 SizedBox(height: AppSpacing.xl.h),
                 Text(
                   'auth.forgot_password_title'.tr(),
-                  style: tt.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: tt.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: AppSpacing.sm.h),
                 Text(
-                  'auth.forgot_password_subtitle'.tr(),
+                  'auth.forgot_password_mobile_subtitle'.tr(),
                   textAlign: TextAlign.center,
                   style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 SizedBox(height: AppSpacing.xxxl.h),
-                // Form Card
                 Form(
-                  key: formKey,
+                  key: _formKey,
                   child: Column(
                     children: [
                       AppTextField(
-                        controller: emailController,
+                        controller: _mobileController,
                         enabled: !isLoading,
-                        keyboardType: TextInputType.emailAddress,
-                        label: 'auth.email'.tr(),
-                        prefixIcon: const Icon(Icons.email_outlined),
+                        keyboardType: TextInputType.phone,
+                        label: 'auth.mobile'.tr(),
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                        maxLength: 15,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         validator: (v) {
                           if (AppUtils.isBlank(v)) {
-                            return 'auth.email_required'.tr();
+                            return 'auth.mobile_required'.tr();
                           }
-                          if (!AppUtils.isValidEmail(v!)) {
-                            return 'auth.email_invalid'.tr();
+                          if (!AppUtils.isValidMobile(v!)) {
+                            return 'auth.mobile_invalid'.tr();
                           }
                           return null;
                         },
                       ),
                       SizedBox(height: AppSpacing.lg.h),
                       AppButton(
-                        label: 'Send Reset Link',
+                        label: 'auth.send_reset_link'.tr(),
                         isLoading: isLoading,
-                        onPressed: isLoading ? null : handleForgotPassword,
+                        onPressed: isLoading ? null : _handleForgotPassword,
                         width: ButtonSize.large,
                         isFullWidth: false,
                       ),

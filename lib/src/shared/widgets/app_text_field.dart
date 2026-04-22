@@ -1,6 +1,5 @@
 import '../../imports/core_imports.dart';
 
-
 /// A themed text form field wrapping [TextFormField].
 ///
 /// Usage:
@@ -30,10 +29,12 @@ class AppTextField extends StatelessWidget {
     this.enabled = true,
     this.maxLines = 1,
     this.minLines,
+    this.maxLength,
     this.prefixIcon,
     this.suffixIcon,
     this.initialValue,
     this.autofocus = false,
+    this.inputFormatters,
   });
 
   final String? label;
@@ -50,10 +51,12 @@ class AppTextField extends StatelessWidget {
   final bool enabled;
   final int? maxLines;
   final int? minLines;
+  final int? maxLength;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final String? initialValue;
   final bool autofocus;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +77,8 @@ class AppTextField extends StatelessWidget {
       enabled: enabled,
       maxLines: obscureText ? 1 : maxLines,
       minLines: minLines,
+      maxLength: maxLength,
+      inputFormatters: inputFormatters,
       autofocus: autofocus,
       style: tt.bodyLarge?.copyWith(color: cs.onSurface),
       cursorColor: cs.primary,
@@ -83,6 +88,7 @@ class AppTextField extends StatelessWidget {
         hintText: hint,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
+        counterText: maxLength == null ? null : '',
       ),
     );
   }

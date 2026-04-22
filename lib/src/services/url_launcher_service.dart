@@ -13,10 +13,7 @@ class UrlLauncherService {
       final uri = Uri.parse(formattedUrl);
 
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: mode ?? LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: mode ?? LaunchMode.externalApplication);
       } else {
         throw Exception('Could not launch url: $formattedUrl');
       }

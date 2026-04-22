@@ -17,7 +17,9 @@ class PermissionService {
   }
 
   /// Request multiple permissions at once.
-  FutureEither<Map<Permission, PermissionStatus>> requestMultiple(List<Permission> permissions) async {
+  FutureEither<Map<Permission, PermissionStatus>> requestMultiple(
+    List<Permission> permissions,
+  ) async {
     return runTask(() => permissions.request());
   }
 

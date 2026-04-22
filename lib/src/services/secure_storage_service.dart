@@ -46,6 +46,11 @@ class SecureStorageService {
     return runTask(() => _storage.containsKey(key: key));
   }
 
+  /// Returns the current auth mode: `'owner'`, `'employee'`, or `null`
+  /// (no active session). Used at cold-start to decide which provider
+  /// rehydrates its own state.
+  Future<String?> readAuthMode() => _storage.read(key: authModeKey);
+
   /// Read the token the Dio interceptor should currently inject.
   ///
   /// Resolves the active `authMode` and returns the matching token (owner or

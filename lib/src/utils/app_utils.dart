@@ -38,9 +38,16 @@ class AppUtils {
     return emailRegExp.hasMatch(s);
   }
 
+  /// Accepts an optional leading `+` followed by 8–15 digits.
+  /// Spaces, dashes and parentheses are stripped before validation.
+  static bool isValidMobile(String s) {
+    final cleaned = s.replaceAll(RegExp(r'[\s\-()]'), '');
+    return RegExp(r'^\+?\d{8,15}$').hasMatch(cleaned);
+  }
+
   /// Checks if string is URL.
   static bool isURL(String s) => hasMatch(
-        s,
-        r"^((((H|h)(T|t)|(F|f))(T|t)(P|p)((S|s)?))\\://)?(www.|[a-zA-Z0-9].)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}(\:[0-9]{1,5})*(/($|[a-zA-Z0-9\.\,\;\?\'\\\+&%\$#\=~_\-]+))*$",
-      );
+    s,
+    r"^((((H|h)(T|t)|(F|f))(T|t)(P|p)((S|s)?))\\://)?(www.|[a-zA-Z0-9].)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,6}(\:[0-9]{1,5})*(/($|[a-zA-Z0-9\.\,\;\?\'\\\+&%\$#\=~_\-]+))*$",
+  );
 }

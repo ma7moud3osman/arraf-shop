@@ -1,39 +1,52 @@
+import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
 
-
-import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
-
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController();
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    const obscurePassword = true;
-    const obscureConfirmPassword = true;
+  State<SignupScreen> createState() => _SignupScreenState();
+}
 
+class _SignupScreenState extends State<SignupScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _mobileController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _handleSignup() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    context.read<AuthProvider>().signUp(
+      context: context,
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      mobile: _mobileController.text.trim(),
+      password: _passwordController.text,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isLoading = context.select((AuthProvider p) => p.isLoading);
 
     final cs = context.theme.colorScheme;
     final tt = context.theme.textTheme;
-
-    Future<void> handleSignup() async {
-      if (!(formKey.currentState?.validate() ?? false)) {
-        return;
-      }
-
-      context.read<AuthProvider>().signUp(
-        context: context, 
-        name: nameController.text,
-        email: emailController.text, 
-        password: passwordController.text,
-      );
-    }
 
     return Scaffold(
       body: SafeArea(
@@ -46,7 +59,9 @@ class SignupScreen extends StatelessWidget {
                 SizedBox(height: AppSpacing.xl.h),
                 Text(
                   'auth.create_account'.tr(),
-                  style: tt.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: tt.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ).animate().fadeIn().slideY(begin: 0.2),
                 SizedBox(height: AppSpacing.sm.h),
                 Text(
@@ -55,21 +70,24 @@ class SignupScreen extends StatelessWidget {
                   style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
                 ).animate().fadeIn().slideY(begin: 0.2),
                 SizedBox(height: AppSpacing.xxxl.h),
-                // Form Card
                 Form(
-                  key: formKey,
+                  key: _formKey,
                   child: Column(
                     children: [
                       AppTextField(
-                        controller: nameController,
+                        controller: _nameController,
                         enabled: !isLoading,
                         label: 'auth.name'.tr(),
                         prefixIcon: const Icon(Icons.person_outline),
-                        validator: (v) => AppUtils.isBlank(v) ? 'auth.name_required'.tr() : null,
+                        validator:
+                            (v) =>
+                                AppUtils.isBlank(v)
+                                    ? 'auth.name_required'.tr()
+                                    : null,
                       ),
                       SizedBox(height: AppSpacing.md.h),
                       AppTextField(
-                        controller: emailController,
+                        controller: _emailController,
                         enabled: !isLoading,
                         keyboardType: TextInputType.emailAddress,
                         label: 'auth.email'.tr(),
@@ -86,16 +104,44 @@ class SignupScreen extends StatelessWidget {
                       ),
                       SizedBox(height: AppSpacing.md.h),
                       AppTextField(
-                        controller: passwordController,
+                        controller: _mobileController,
+                        enabled: !isLoading,
+                        keyboardType: TextInputType.phone,
+                        label: 'auth.mobile'.tr(),
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                        maxLength: 15,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        validator: (v) {
+                          if (AppUtils.isBlank(v)) {
+                            return 'auth.mobile_required'.tr();
+                          }
+                          if (!AppUtils.isValidMobile(v!)) {
+                            return 'auth.mobile_invalid'.tr();
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: AppSpacing.md.h),
+                      AppTextField(
+                        controller: _passwordController,
                         enabled: !isLoading,
                         label: 'auth.password'.tr(),
-                        obscureText: obscurePassword,
+                        obscureText: _obscurePassword,
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(Icons.visibility),
-                          onPressed: () => null,
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed:
+                              () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
                         ),
-                         validator: (v) {
+                        validator: (v) {
                           if (AppUtils.isBlank(v)) {
                             return 'auth.password_required'.tr();
                           }
@@ -107,20 +153,29 @@ class SignupScreen extends StatelessWidget {
                       ),
                       SizedBox(height: AppSpacing.md.h),
                       AppTextField(
-                        controller: confirmPasswordController,
+                        controller: _confirmPasswordController,
                         enabled: !isLoading,
                         label: 'auth.confirm_password'.tr(),
-                        obscureText: obscureConfirmPassword,
+                        obscureText: _obscureConfirmPassword,
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(Icons.visibility),
-                          onPressed: () => null,
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed:
+                              () => setState(
+                                () =>
+                                    _obscureConfirmPassword =
+                                        !_obscureConfirmPassword,
+                              ),
                         ),
                         validator: (v) {
                           if (AppUtils.isBlank(v)) {
                             return 'auth.confirm_password_required'.tr();
                           }
-                          if (v != passwordController.text) {
+                          if (v != _passwordController.text) {
                             return 'auth.passwords_do_not_match'.tr();
                           }
                           return null;
@@ -128,9 +183,9 @@ class SignupScreen extends StatelessWidget {
                       ),
                       SizedBox(height: AppSpacing.lg.h),
                       AppButton(
-                        label: 'Create Account',
+                        label: 'auth.create_account_button'.tr(),
                         isLoading: isLoading,
-                        onPressed: isLoading ? null : handleSignup,
+                        onPressed: isLoading ? null : _handleSignup,
                         width: ButtonSize.large,
                         isFullWidth: false,
                       ),
@@ -138,71 +193,17 @@ class SignupScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: AppSpacing.xxxl.h),
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 20.w,
-                      children: [
-                        SizedBox(
-                          width: 50.w,
-                          height: 50.w,
-                          child: TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFFEA4335).withValues(alpha: 0.8),
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: AppBorders.button,
-                              ),
-                            ),
-                            child: SvgPicture.asset(AppAssets.googleIcon),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 50.w,
-                          height: 50.w,
-                          child: TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFF4285F4),
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: AppBorders.button,
-                              ),
-                            ),
-                            child: SvgPicture.asset(AppAssets.facebookIcon),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 50.w,
-                          height: 50.w,
-                          child: TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFF000000),
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: AppBorders.button,
-                              ),
-                            ),
-                            child: SvgPicture.asset(AppAssets.appleIcon),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: AppSpacing.xl.h),
-                  ],
-                ),
                 InkWell(
                   onTap: () => Navigator.pop(context),
                   child: RichText(
                     text: TextSpan(
                       text: 'auth.already_have_account'.tr(),
-                      style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+                      style: tt.bodyMedium?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
                       children: [
                         TextSpan(
-                          text: 'auth.sign_up'.tr(),
+                          text: 'auth.sign_in'.tr(),
                           style: TextStyle(
                             color: cs.primary,
                             fontWeight: FontWeight.bold,

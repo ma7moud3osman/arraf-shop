@@ -16,29 +16,49 @@ class AuthService {
       StreamController<Map<String, dynamic>?>.broadcast();
 
   /// Stream of auth state changes. Emits the current user map or null.
-  Stream<Map<String, dynamic>?> get authStateChanges => _authStateController.stream;
+  Stream<Map<String, dynamic>?> get authStateChanges =>
+      _authStateController.stream;
 
-  /// POST /signin — returns raw `{user, token}` (no envelope).
-  FutureEither<Map<String, dynamic>?> login({
-    required String email,
+  /// Emit an owner user map on the auth-state stream. Called by the
+  /// repository after a successful owner branch of [unifiedLogin], since the
+  /// repo is the layer that discriminates the role.
+  void emitOwnerAuthState(Map<String, dynamic>? user) {
+    _authStateController.add(user);
+  }
+
+  /// POST /login — unified login for owners + employees.
+  ///
+  /// Returns the envelope's `data` block:
+  /// `{token, role: "owner"|"employee", user: ..., employee: ...}`.
+  /// This method owns token persistence: owner tokens go to the owner
+  /// slot, employee tokens go to the employee slot. The stream emission
+  /// (SessionProvider wiring) is left to the repo since only it knows
+  /// which actor landed.
+  FutureEither<Map<String, dynamic>?> unifiedLogin({
+    required String mobile,
     required String password,
   }) async {
     return runTask(() async {
       final response = await _dio.post<dynamic>(
-        'signin',
-        data: {'email': email, 'password': password},
+        'login',
+        data: {'mobile': mobile, 'password': password},
         options: Options(extra: {'skipAuth': true}),
       );
-      final body = response.data as Map<String, dynamic>;
-      final user = body['user'] as Map<String, dynamic>?;
-      final token = body['token'] as String?;
 
-      if (token != null) {
-        await _storage.writeOwnerToken(token);
+      final body = response.data as Map<String, dynamic>;
+      final data = (body['data'] as Map<String, dynamic>?) ?? body;
+      final token = data['token'] as String?;
+      final role = data['role'] as String?;
+
+      if (token != null && token.isNotEmpty) {
+        if (role == 'employee') {
+          await _storage.writeEmployeeToken(token);
+        } else {
+          await _storage.writeOwnerToken(token);
+        }
       }
 
-      _authStateController.add(user);
-      return user;
+      return data;
     }, requiresNetwork: true);
   }
 
@@ -76,12 +96,12 @@ class AuthService {
     }, requiresNetwork: true);
   }
 
-  /// POST /password/email — no body in response beyond the envelope.
-  FutureEither<void> forgotPassword({required String email}) async {
+  /// POST /password/mobile — sends a reset code to the user's mobile.
+  FutureEither<void> forgotPassword({required String mobile}) async {
     return runTask(() async {
       await _dio.post<dynamic>(
-        'password/email',
-        data: {'email': email},
+        'password/mobile',
+        data: {'mobile': mobile},
         options: Options(extra: {'skipAuth': true}),
       );
     }, requiresNetwork: true);

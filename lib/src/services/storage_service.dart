@@ -18,19 +18,19 @@ class StorageService {
 
   // --- SETTERS ---
 
-  FutureEither<bool> setString(String key, String value) async => 
+  FutureEither<bool> setString(String key, String value) async =>
       runTask(() => _prefs.setString(key, value));
 
-  FutureEither<bool> setBool(String key, bool value) async => 
+  FutureEither<bool> setBool(String key, bool value) async =>
       runTask(() => _prefs.setBool(key, value));
 
-  FutureEither<bool> setInt(String key, int value) async => 
+  FutureEither<bool> setInt(String key, int value) async =>
       runTask(() => _prefs.setInt(key, value));
 
-  FutureEither<bool> setDouble(String key, double value) async => 
+  FutureEither<bool> setDouble(String key, double value) async =>
       runTask(() => _prefs.setDouble(key, value));
 
-  FutureEither<bool> setStringList(String key, List<String> value) async => 
+  FutureEither<bool> setStringList(String key, List<String> value) async =>
       runTask(() => _prefs.setStringList(key, value));
 
   // --- GETTERS ---
@@ -45,9 +45,8 @@ class StorageService {
 
   bool containsKey(String key) => _prefs.containsKey(key);
 
-  FutureEither<bool> remove(String key) async => 
+  FutureEither<bool> remove(String key) async =>
       runTask(() => _prefs.remove(key));
 
-  FutureEither<bool> clear() async => 
-      runTask(() => _prefs.clear());
+  FutureEither<bool> clear() async => runTask(() => _prefs.clear());
 }

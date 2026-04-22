@@ -12,11 +12,17 @@ class ShareService {
   }
 
   /// Share files.
-  FutureEither<ShareResult> shareFiles(List<String> paths, {String? text, String? subject}) async {
-    return runTask(() => Share.shareXFiles(
-      paths.map((p) => XFile(p)).toList(),
-      text: text,
-      subject: subject,
-    ));
+  FutureEither<ShareResult> shareFiles(
+    List<String> paths, {
+    String? text,
+    String? subject,
+  }) async {
+    return runTask(
+      () => Share.shareXFiles(
+        paths.map((p) => XFile(p)).toList(),
+        text: text,
+        subject: subject,
+      ),
+    );
   }
 }

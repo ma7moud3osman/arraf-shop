@@ -5,7 +5,7 @@ import '../../imports/imports.dart';
 /// Usage:
 /// ```dart
 /// AppEmptyState(
-///   icon: Icons.inbox_outlined,
+///   icon: HugeIcons.strokeRoundedInbox,
 ///   title: 'No messages yet',
 ///   subtitle: 'Your inbox will appear here.',
 ///   actionLabel: 'Refresh',
@@ -22,7 +22,7 @@ class AppEmptyState extends StatelessWidget {
     this.onAction,
   });
 
-  final IconData icon;
+  final List<List<dynamic>> icon;
   final String title;
   final String? subtitle;
   final String? actionLabel;
@@ -39,7 +39,11 @@ class AppEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
+            HugeIcon(
+              icon: icon,
+              size: 64,
+              color: cs.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
             const SizedBox(height: 20),
             Text(
               title,

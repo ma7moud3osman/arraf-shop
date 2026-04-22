@@ -91,7 +91,8 @@ class AppCard extends StatelessWidget {
             ),
           ),
         Padding(
-          padding: padding ??
+          padding:
+              padding ??
               EdgeInsets.fromLTRB(
                 AppSpacing.md,
                 title == null ? AppSpacing.md : 0,
@@ -108,19 +109,19 @@ class AppCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: AppBorders.card,
-        border: showShadow
-            ? null
-            : Border.all(color: cs.outlineVariant, width: 1),
+        border:
+            showShadow ? null : Border.all(color: cs.outlineVariant, width: 1),
         boxShadow: showShadow ? AppShadows.card : AppShadows.none,
       ),
       clipBehavior: Clip.antiAlias,
-      child: onTap != null
-          ? InkWell(
-              onTap: onTap,
-              borderRadius: AppBorders.card,
-              child: content,
-            )
-          : content,
+      child:
+          onTap != null
+              ? InkWell(
+                onTap: onTap,
+                borderRadius: AppBorders.card,
+                child: content,
+              )
+              : content,
     );
   }
 }

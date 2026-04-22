@@ -4,7 +4,7 @@ void showToast(
   BuildContext context, {
   required String message,
   String? status = 'success',
-  IconData? icon,
+  List<List<dynamic>>? icon,
   Duration? duration,
   bool? autoDismiss,
 }) {
@@ -46,35 +46,37 @@ void showToast(
     toastDuration: duration ?? const Duration(seconds: 2),
     animationDuration: const Duration(milliseconds: 150),
     animationCurve: Curves.easeIn,
-    builder: (context) => ToastCard(
-      color: backgroundColor,
-      shadowColor: colorScheme.shadow.withValues(alpha: 0.05),
-      leading: Icon(
-        icon ??
-            (toastStatus == 'success'
-                ? HugeIcons.strokeRoundedTickCircle
-                : toastStatus == 'error'
+    builder:
+        (context) => ToastCard(
+          color: backgroundColor,
+          shadowColor: colorScheme.shadow.withValues(alpha: 0.05),
+          leading: HugeIcon(
+            icon:
+                icon ??
+                (toastStatus == 'success'
+                    ? HugeIcons.strokeRoundedCheckmarkCircle02
+                    : toastStatus == 'error'
                     ? HugeIcons.strokeRoundedAlertCircle
                     : HugeIcons.strokeRoundedInformationCircle),
-        color: iconColor,
-        size: 22.sp,
-      ),
-      title: Text(
-        message,
-        style: context.theme.textTheme.labelSmall!.copyWith(
-          fontWeight: FontWeight.w600,
-          fontSize: 11.sp,
-          color: foregroundColor,
+            color: iconColor,
+            size: 22.sp,
+          ),
+          title: Text(
+            message,
+            style: context.theme.textTheme.labelSmall!.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 11.sp,
+              color: foregroundColor,
+            ),
+          ),
         ),
-      ),
-    ),
   ).show(context);
 }
 
 void showGlobalToast({
   required String message,
   String? status = 'success',
-  IconData? icon,
+  List<List<dynamic>>? icon,
   Duration? duration,
   bool? autoDismiss,
 }) {

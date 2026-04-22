@@ -1,4 +1,6 @@
+import 'package:arraf_shop/src/features/settings/presentation/providers/settings_provider.dart';
 import 'package:arraf_shop/src/imports/core_imports.dart';
+import 'package:provider/provider.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -13,12 +15,18 @@ class App extends StatelessWidget {
   }
 
   Widget _buildMaterialApp(BuildContext context) {
+    final themeMode = context.select((SettingsProvider s) => s.themeMode);
+
+    // Keep the Dio `Accept-Language` header in sync with the active locale
+    // so every API call asks Laravel for translated error messages.
+    AppConfig.currentLocale = context.locale.languageCode;
+
     return MaterialApp.router(
       title: 'Arraf Shop',
       debugShowCheckedModeBanner: false,
       theme: buildLightTheme(primaryColorHex: '#f59e0b'),
       darkTheme: buildDarkTheme(primaryColorHex: '#f59e0b'),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: appRouter,
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,

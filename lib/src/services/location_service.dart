@@ -46,11 +46,12 @@ class LocationService {
           throw Exception('Location permissions are denied.');
         }
       }
-      
+
       if (permission == LocationPermission.deniedForever) {
         throw Exception(
-            'Location permissions are permanently denied, we cannot request permissions.');
-      } 
+          'Location permissions are permanently denied, we cannot request permissions.',
+        );
+      }
 
       return await Geolocator.getCurrentPosition(
         locationSettings: LocationSettings(accuracy: accuracy),

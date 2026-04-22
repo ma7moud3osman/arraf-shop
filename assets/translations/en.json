@@ -1,23 +1,42 @@
 {
   "shared": {
-    "get_started": "Get Started"
+    "get_started": "Get Started",
+    "app_name": "Arraf"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "theme_system": "System default",
+    "theme_light": "Light",
+    "theme_dark": "Dark"
   },
   "onboarding": {
-    "onboarding_title_1": "Your Journey,\nPerfectly Planned",
-    "onboarding_subtitle_1": "Effortlessly create and organize your\ndream trips. Start exploring now!",
-    "onboarding_title_2": "Discover\nFriends Nearby",
-    "onboarding_subtitle_2": "See where your friends are traveling and\nexplore the world together.",
-    "onboarding_title_3": "Stay Updated\nwith Top Places",
-    "onboarding_subtitle_3": "Find trending destinations and must-see attractions,\nall tailored to enhance your travel plans."
+    "onboarding_title_1": "Inventory,\nUnder Your Thumb",
+    "onboarding_subtitle_1": "Scan every ring, chain, and bracelet.\nReconcile counts down to the gram.",
+    "onboarding_title_2": "Multiple Devices,\nOne Audit",
+    "onboarding_subtitle_2": "Your team scans in parallel.\nFirst scan wins, no double-counting.",
+    "onboarding_title_3": "Signed, Sealed,\nAuditor-Ready",
+    "onboarding_subtitle_3": "Complete the session, freeze the report,\nhand it over with confidence.",
+    "next": "Next",
+    "skip": "Skip"
   },
   "home": {
     "home_title": "Home",
     "welcome_home": "Welcome Home!",
-    "home_subtitle": "You have successfully completed the onboarding process."
+    "welcome_named": "Hello, {name}",
+    "home_subtitle": "You have successfully completed the onboarding process.",
+    "audits_subtitle": "Scan inventory, reconcile counts, and export reports.",
+    "sign_out": "Sign out",
+    "attendance_subtitle": "Check in and view your attendance calendar.",
+    "payslips_subtitle": "View and download your monthly payslips."
   },
   "auth": {
     "log_in": "Log in",
-    "log_in_subtitle": "Enter your email and password",
+    "log_in_subtitle": "Enter your mobile number and password",
+    "mobile": "Mobile number",
+    "mobile_required": "Mobile number is required",
+    "mobile_invalid": "Enter a valid mobile number",
     "email": "Email",
     "email_required": "Email is required",
     "email_invalid": "Enter a valid email",
@@ -42,7 +61,24 @@
     "or_continue_with": "Or Continue With Account",
     "forgot_password_title": "Forgot Password",
     "forgot_password_subtitle": "Enter your email address to receive a reset link\nand regain access to your account.",
-    "reset_link_sent": "Password reset link sent to your email."
+    "reset_link_sent": "Password reset link sent to your email.",
+    "back_to_login": "Back to login",
+    "send_reset_link": "Send Reset Link",
+    "employee_login": {
+      "title": "Employee sign-in",
+      "subtitle": "Enter your employee code and PIN to continue.",
+      "code": "Employee code",
+      "code_required": "Employee code is required",
+      "pin": "PIN",
+      "pin_required": "PIN is required",
+      "pin_too_short": "PIN must be at least 4 digits",
+      "sign_in": "Sign In",
+      "switch_to_owner": "I'm the shop owner — sign in with my mobile",
+      "role_owner": "Owner",
+      "role_employee": "Employee"
+    },
+    "forgot_password_mobile_subtitle": "Enter your mobile number to receive a password reset code.",
+    "reset_code_sent": "Reset code sent to your mobile."
   },
   "audits": {
     "scanner": {
@@ -55,6 +91,130 @@
       "switch_camera": "Switch camera",
       "starting": "Starting camera…",
       "camera_error": "Camera unavailable"
+    },
+    "status": {
+      "draft": "Draft",
+      "in_progress": "In progress",
+      "completed": "Completed"
+    },
+    "scan": {
+      "valid": "Valid",
+      "duplicate": "Duplicate",
+      "not_found": "Not found",
+      "unexpected": "Unexpected"
+    },
+    "list": {
+      "title": "Audits",
+      "start_new": "New audit",
+      "untitled": "Untitled audit",
+      "start_failed": "Could not start a new audit.",
+      "load_failed": "Could not load audits.",
+      "empty_title": "No audits yet",
+      "empty_subtitle": "Start a new audit to begin counting stock.",
+      "progress_counts": "{scanned} / {expected} items"
+    },
+    "session": {
+      "title": "Audit session",
+      "loading": "Loading session…",
+      "load_failed": "Could not load session.",
+      "complete": "Complete",
+      "complete_failed": "Could not complete session.",
+      "scan_failed": "Could not record scan.",
+      "progress_title": "Scanned",
+      "weight_counts": "Weight: {scanned} / {expected}",
+      "feed_empty": "Scans will appear here."
+    },
+    "summary": {
+      "title": "Audit summary",
+      "loading": "Loading summary…",
+      "load_failed": "Could not load summary.",
+      "overview": "Overview",
+      "expected_count": "Expected count",
+      "scanned_count": "Scanned count",
+      "count_difference": "Count difference",
+      "expected_weight": "Expected weight",
+      "scanned_weight": "Scanned weight",
+      "weight_difference": "Weight difference",
+      "missing": "Missing ({count})",
+      "unexpected": "Unexpected ({count})",
+      "missing_label": "Missing",
+      "unexpected_label": "Unexpected",
+      "not_found_label": "Not found",
+      "missing_failed": "Could not load missing items.",
+      "unexpected_failed": "Could not load unexpected scans.",
+      "no_missing": "Nothing missing — every expected item was scanned.",
+      "no_unexpected": "No unexpected scans."
+    }
+  },
+  "attendance": {
+    "title": "Attendance",
+    "today": {
+      "title": "TODAY",
+      "in": "Check-in",
+      "out": "Check-out",
+      "done": "You've completed today's shift.",
+      "load_failed": "Could not load today's attendance."
+    },
+    "history": {
+      "title": "HISTORY"
+    },
+    "calendar": {
+      "month": "Month",
+      "two_weeks": "2 weeks",
+      "week": "Week"
+    },
+    "status": {
+      "present": "Present",
+      "late": "Late",
+      "absent": "Absent",
+      "checked_out": "Checked out"
+    },
+    "button": {
+      "check_in": "Check in",
+      "check_out": "Check out"
+    },
+    "toast": {
+      "checked_in": "Checked in.",
+      "checked_out": "Checked out.",
+      "check_in_failed": "Could not check in.",
+      "check_out_failed": "Could not check out."
+    },
+    "sheet": {
+      "checked_in": "Checked in",
+      "checked_out": "Checked out",
+      "worked": "Worked time",
+      "late_by": "Late by {mins}m",
+      "early_by": "Left early by {mins}m",
+      "no_record": "No attendance recorded for this day."
+    },
+    "errors": {
+      "location_services_off": "Turn on Location Services to check in.",
+      "permission_denied": "Allow location access to check in.",
+      "permission_permanent": "Location is blocked — enable it in Settings.",
+      "fix_timeout": "Could not get your location. Try moving outside or near a window."
+    }
+  },
+  "payroll": {
+    "title": "Payslips",
+    "filter": "Filter",
+    "filter_title": "Filter payslips",
+    "year": "Year",
+    "month": "Month",
+    "clear": "Clear",
+    "apply": "Apply",
+    "load_failed": "Could not load payslips.",
+    "empty_title": "No payslips yet",
+    "empty_subtitle": "Your monthly payslips will appear here once generated.",
+    "days": "working days",
+    "absent": "absent",
+    "status": {
+      "paid": "Paid",
+      "locked": "Locked",
+      "draft": "Draft"
+    },
+    "toast": {
+      "pdf_unavailable": "PDF is not available for this payslip.",
+      "open_failed": "Could not open the payslip."
     }
   }
 }

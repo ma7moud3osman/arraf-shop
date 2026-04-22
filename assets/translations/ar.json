@@ -1,47 +1,220 @@
 {
   "shared": {
-    "get_started": "Get Started"
+    "get_started": "ابدأ",
+    "app_name": "عرّاف"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "theme": "المظهر",
+    "theme_system": "افتراضي النظام",
+    "theme_light": "فاتح",
+    "theme_dark": "داكن"
   },
   "onboarding": {
-    "onboarding_title_1": "Your Journey,\nPerfectly Planned",
-    "onboarding_subtitle_1": "Effortlessly create and organize your\ndream trips. Start exploring now!",
-    "onboarding_title_2": "Discover\nFriends Nearby",
-    "onboarding_subtitle_2": "See where your friends are traveling and\nexplore the world together.",
-    "onboarding_title_3": "Stay Updated\nwith Top Places",
-    "onboarding_subtitle_3": "Find trending destinations and must-see attractions,\nall tailored to enhance your travel plans."
+    "onboarding_title_1": "مخزونك\nتحت السيطرة",
+    "onboarding_subtitle_1": "امسح كل خاتم وسلسلة وغوايش.\nطابق العدد والوزن بالجرام.",
+    "onboarding_title_2": "أجهزة متعددة،\nجرد واحد",
+    "onboarding_subtitle_2": "فريقك يمسح بالتوازي.\nأول مسح يفوز، بدون أي تكرار.",
+    "onboarding_title_3": "مختوم وجاهز\nللمراجعة",
+    "onboarding_subtitle_3": "أنهِ الجلسة، جمّد التقرير،\nوسلّمه بثقة للمراجع.",
+    "next": "التالي",
+    "skip": "تخطَّ"
   },
   "home": {
-    "home_title": "Home",
-    "welcome_home": "Welcome Home!",
-    "home_subtitle": "You have successfully completed the onboarding process."
+    "home_title": "الرئيسية",
+    "welcome_home": "أهلاً بك!",
+    "welcome_named": "أهلاً، {name}",
+    "home_subtitle": "تم إعداد حسابك بنجاح.",
+    "audits_subtitle": "امسح المخزون، طابق الأعداد، وصدّر التقارير.",
+    "sign_out": "تسجيل الخروج",
+    "attendance_subtitle": "سجّل حضورك وشاهد سجل الأيام.",
+    "payslips_subtitle": "اعرض قسائم راتبك الشهرية وحمّلها."
   },
   "auth": {
-    "log_in": "Log in",
-    "log_in_subtitle": "Enter your email and password",
-    "email": "Email",
-    "email_required": "Email is required",
-    "email_invalid": "Enter a valid email",
-    "password": "Password",
-    "password_required": "Password is required",
-    "password_too_short": "Password must be at least 6 characters",
-    "remember_me": "Remember me",
-    "forgot_password": "Forgot Password",
-    "login_button": "Login",
-    "dont_have_account": "Don't have an account? ",
-    "sign_up": "Sign Up",
-    "create_account": "Create Account",
-    "create_account_subtitle": "Create a new account to get started.",
-    "name": "Name",
-    "name_required": "Name is required",
-    "confirm_password": "Confirm Password",
-    "confirm_password_required": "Confirm password is required",
-    "passwords_do_not_match": "Passwords do not match",
-    "create_account_button": "Create Account",
-    "already_have_account": "Already have an account? ",
-    "sign_in": "Sign In",
-    "or_continue_with": "Or Continue With Account",
-    "forgot_password_title": "Forgot Password",
-    "forgot_password_subtitle": "Enter your email address to receive a reset link\nand regain access to your account.",
-    "reset_link_sent": "Password reset link sent to your email."
+    "log_in": "تسجيل الدخول",
+    "log_in_subtitle": "أدخل رقم جوّالك وكلمة المرور",
+    "mobile": "رقم الجوّال",
+    "mobile_required": "رقم الجوّال مطلوب",
+    "mobile_invalid": "أدخل رقم جوّال صحيح",
+    "email": "البريد الإلكتروني",
+    "email_required": "البريد الإلكتروني مطلوب",
+    "email_invalid": "أدخل بريداً إلكترونياً صحيحاً",
+    "password": "كلمة المرور",
+    "password_required": "كلمة المرور مطلوبة",
+    "password_too_short": "يجب ألا تقل كلمة المرور عن 6 أحرف",
+    "remember_me": "تذكّرني",
+    "forgot_password": "نسيت كلمة المرور؟",
+    "login_button": "تسجيل الدخول",
+    "dont_have_account": "ليس لديك حساب؟ ",
+    "sign_up": "إنشاء حساب",
+    "create_account": "إنشاء حساب",
+    "create_account_subtitle": "أنشئ حساباً جديداً للبدء.",
+    "name": "الاسم",
+    "name_required": "الاسم مطلوب",
+    "confirm_password": "تأكيد كلمة المرور",
+    "confirm_password_required": "تأكيد كلمة المرور مطلوب",
+    "passwords_do_not_match": "كلمتا المرور غير متطابقتين",
+    "create_account_button": "إنشاء حساب",
+    "already_have_account": "لديك حساب بالفعل؟ ",
+    "sign_in": "تسجيل الدخول",
+    "or_continue_with": "أو تابع عبر",
+    "forgot_password_title": "نسيت كلمة المرور",
+    "forgot_password_subtitle": "أدخل رقم جوّالك لتلقي رمز استعادة كلمة المرور.",
+    "reset_link_sent": "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
+    "back_to_login": "العودة لتسجيل الدخول",
+    "send_reset_link": "إرسال رابط الاستعادة",
+    "employee_login": {
+      "title": "تسجيل دخول الموظف",
+      "subtitle": "أدخل كود الموظف ورقم PIN للمتابعة.",
+      "code": "كود الموظف",
+      "code_required": "كود الموظف مطلوب",
+      "pin": "رقم PIN",
+      "pin_required": "رقم PIN مطلوب",
+      "pin_too_short": "يجب ألا يقل رقم PIN عن 4 أرقام",
+      "sign_in": "تسجيل الدخول",
+      "switch_to_owner": "أنا صاحب المحل — سجّل الدخول برقم الجوّال",
+      "role_owner": "المالك",
+      "role_employee": "موظف"
+    },
+    "forgot_password_mobile_subtitle": "أدخل رقم جوّالك لتلقي رمز استعادة كلمة المرور.",
+    "reset_code_sent": "تم إرسال رمز الاستعادة إلى جوّالك."
+  },
+  "audits": {
+    "scanner": {
+      "permission_denied_title": "مطلوب إذن الكاميرا",
+      "permission_denied_body": "اسمح للتطبيق بالوصول إلى الكاميرا من الإعدادات لمسح الباركود.",
+      "grant_permission": "منح الإذن",
+      "open_settings": "فتح الإعدادات",
+      "torch_on": "تشغيل الفلاش",
+      "torch_off": "إيقاف الفلاش",
+      "switch_camera": "تبديل الكاميرا",
+      "starting": "جاري تشغيل الكاميرا…",
+      "camera_error": "الكاميرا غير متاحة"
+    },
+    "status": {
+      "draft": "مسودة",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل"
+    },
+    "scan": {
+      "valid": "صحيح",
+      "duplicate": "مكرر",
+      "not_found": "غير موجود",
+      "unexpected": "غير متوقع"
+    },
+    "list": {
+      "title": "عمليات الجرد",
+      "start_new": "جرد جديد",
+      "untitled": "جرد بدون عنوان",
+      "start_failed": "تعذر بدء عملية جرد جديدة.",
+      "load_failed": "تعذر تحميل عمليات الجرد.",
+      "empty_title": "لا توجد عمليات جرد بعد",
+      "empty_subtitle": "ابدأ عملية جرد جديدة لحصر المخزون.",
+      "progress_counts": "{scanned} / {expected} صنف"
+    },
+    "session": {
+      "title": "جلسة الجرد",
+      "loading": "جاري تحميل الجلسة…",
+      "load_failed": "تعذر تحميل الجلسة.",
+      "complete": "إنهاء",
+      "complete_failed": "تعذر إنهاء الجلسة.",
+      "scan_failed": "تعذر تسجيل المسح.",
+      "progress_title": "عدد الممسوح",
+      "weight_counts": "الوزن: {scanned} / {expected}",
+      "feed_empty": "سيظهر المسح هنا."
+    },
+    "summary": {
+      "title": "ملخص الجرد",
+      "loading": "جاري تحميل الملخص…",
+      "load_failed": "تعذر تحميل الملخص.",
+      "overview": "نظرة عامة",
+      "expected_count": "العدد المتوقع",
+      "scanned_count": "العدد الممسوح",
+      "count_difference": "فرق العدد",
+      "expected_weight": "الوزن المتوقع",
+      "scanned_weight": "الوزن الممسوح",
+      "weight_difference": "فرق الوزن",
+      "missing": "مفقود ({count})",
+      "unexpected": "غير متوقع ({count})",
+      "missing_label": "مفقود",
+      "unexpected_label": "غير متوقع",
+      "not_found_label": "غير موجود",
+      "missing_failed": "تعذر تحميل الأصناف المفقودة.",
+      "unexpected_failed": "تعذر تحميل المسح غير المتوقع.",
+      "no_missing": "لا يوجد مفقود — تم مسح كل الأصناف المتوقعة.",
+      "no_unexpected": "لا يوجد مسح غير متوقع."
+    }
+  },
+  "attendance": {
+    "title": "الحضور",
+    "today": {
+      "title": "اليوم",
+      "in": "الدخول",
+      "out": "الانصراف",
+      "done": "أنهيتَ ورديتك اليوم.",
+      "load_failed": "تعذّر تحميل حضور اليوم."
+    },
+    "history": {
+      "title": "السجل"
+    },
+    "calendar": {
+      "month": "شهر",
+      "two_weeks": "أسبوعان",
+      "week": "أسبوع"
+    },
+    "status": {
+      "present": "حاضر",
+      "late": "متأخر",
+      "absent": "غائب",
+      "checked_out": "انصرف"
+    },
+    "button": {
+      "check_in": "تسجيل حضور",
+      "check_out": "تسجيل انصراف"
+    },
+    "toast": {
+      "checked_in": "تم تسجيل الحضور.",
+      "checked_out": "تم تسجيل الانصراف.",
+      "check_in_failed": "تعذّر تسجيل الحضور.",
+      "check_out_failed": "تعذّر تسجيل الانصراف."
+    },
+    "sheet": {
+      "checked_in": "تم الحضور",
+      "checked_out": "تم الانصراف",
+      "worked": "وقت العمل",
+      "late_by": "متأخر بـ {mins}د",
+      "early_by": "انصرف مبكراً بـ {mins}د",
+      "no_record": "لا يوجد سجل حضور لهذا اليوم."
+    },
+    "errors": {
+      "location_services_off": "فعّل خدمات الموقع لتسجيل الحضور.",
+      "permission_denied": "اسمح بالوصول للموقع لتسجيل الحضور.",
+      "permission_permanent": "الموقع محظور — فعّله من الإعدادات.",
+      "fix_timeout": "تعذّر الحصول على موقعك. حاول قرب النافذة أو في الخارج."
+    }
+  },
+  "payroll": {
+    "title": "قسائم الراتب",
+    "filter": "تصفية",
+    "filter_title": "تصفية القسائم",
+    "year": "السنة",
+    "month": "الشهر",
+    "clear": "مسح",
+    "apply": "تطبيق",
+    "load_failed": "تعذّر تحميل قسائم الراتب.",
+    "empty_title": "لا توجد قسائم بعد",
+    "empty_subtitle": "ستظهر قسائم راتبك الشهرية هنا حال إصدارها.",
+    "days": "يوم عمل",
+    "absent": "غياب",
+    "status": {
+      "paid": "مدفوعة",
+      "locked": "مُجمَّدة",
+      "draft": "مسودة"
+    },
+    "toast": {
+      "pdf_unavailable": "ملف PDF غير متاح لهذه القسيمة.",
+      "open_failed": "تعذّر فتح القسيمة."
+    }
   }
 }

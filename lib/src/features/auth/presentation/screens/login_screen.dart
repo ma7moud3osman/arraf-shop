@@ -1,35 +1,71 @@
 import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
 
-
 import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 
-class LoginScreen extends StatelessWidget {
+/// Single unified login. The backend `POST /api/login` endpoint decides
+/// whether the mobile number belongs to a shop owner or a shop employee
+/// and returns the appropriate actor — the app routes to the home screen
+/// either way; the home screen reads the two auth providers to pick the
+/// right cards.
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-    const obscurePassword = true;
+  State<LoginScreen> createState() => _LoginScreenState();
+}
 
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _mobileController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  // Debug-only dev prefill.
+  static const String _devMobile = '01000300400';
+  static const String _devPassword = '123456789';
+
+  @override
+  void initState() {
+    super.initState();
+    if (kDebugMode) {
+      _mobileController.text = _devMobile;
+      _passwordController.text = _devPassword;
+    }
+  }
+
+  @override
+  void dispose() {
+    _mobileController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    FocusScope.of(context).unfocus();
+
+    final errorMessage = await context.read<AuthProvider>().login(
+      context: context,
+      mobile: _mobileController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (errorMessage != null) {
+      showToast(context, message: errorMessage, status: 'error');
+      return;
+    }
+    context.go(AppRoutes.home);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isLoading = context.select((AuthProvider p) => p.isLoading);
 
     final cs = context.theme.colorScheme;
     final tt = context.theme.textTheme;
-
-    Future<void> handleLogin() async {
-      if (!(formKey.currentState?.validate() ?? false)) {
-        return;
-      }
-
-       context.read<AuthProvider>().login(
-        context: context, 
-        email: emailController.text, 
-        password: passwordController.text,
-      );
-    }
 
     return Scaffold(
       body: SafeArea(
@@ -42,7 +78,9 @@ class LoginScreen extends StatelessWidget {
                 SizedBox(height: AppSpacing.xl.h),
                 Text(
                   'auth.log_in'.tr(),
-                  style: tt.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: tt.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: AppSpacing.sm.h),
                 Text(
@@ -51,42 +89,54 @@ class LoginScreen extends StatelessWidget {
                   style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 SizedBox(height: AppSpacing.xxxl.h),
-                // Form Card
                 Form(
-                  key: formKey,
+                  key: _formKey,
                   child: Column(
                     children: [
                       AppTextField(
-                        controller: emailController,
+                        controller: _mobileController,
                         enabled: !isLoading,
-                        label: 'auth.email'.tr(),
-                        prefixIcon: const Icon(Icons.email_outlined),
+                        label: 'auth.mobile'.tr(),
+                        keyboardType: TextInputType.phone,
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                        maxLength: 15,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         validator: (v) {
                           if (AppUtils.isBlank(v)) {
-                            return 'auth.email_required'.tr();
+                            return 'auth.mobile_required'.tr();
                           }
-                          if (!AppUtils.isValidEmail(v!)) {
-                            return 'auth.email_invalid'.tr();
+                          if (!AppUtils.isValidMobile(v!)) {
+                            return 'auth.mobile_invalid'.tr();
                           }
                           return null;
                         },
                       ),
                       SizedBox(height: AppSpacing.md.h),
                       AppTextField(
-                        controller: passwordController,
+                        controller: _passwordController,
                         enabled: !isLoading,
                         label: 'auth.password'.tr(),
-                        obscureText: obscurePassword,
+                        obscureText: _obscurePassword,
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(Icons.visibility),
-                          onPressed: () => null,
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed:
+                              () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
                         ),
-                         validator: (v) {
+                        onFieldSubmitted: (_) => _handleLogin(),
+                        validator: (v) {
                           if (AppUtils.isBlank(v)) {
                             return 'auth.password_required'.tr();
                           }
-                          if (v!.length < 6) {
+                          if (v!.length < 4) {
                             return 'auth.password_too_short'.tr();
                           }
                           return null;
@@ -94,25 +144,8 @@ class LoginScreen extends StatelessWidget {
                       ),
                       SizedBox(height: AppSpacing.sm.h),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Row(
-                            spacing: 5.w,
-                            children: [
-                              SizedBox(
-                                width: 20.w,
-                                height: 20.h,
-                                child: Checkbox(
-                                  value: true,
-                                  onChanged: (value) {},
-                                ),
-                              ),
-                              Text(
-                                'auth.remember_me'.tr(),
-                                style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                              ),
-                            ],
-                          ),
                           TextButton(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
@@ -131,90 +164,13 @@ class LoginScreen extends StatelessWidget {
                       ),
                       SizedBox(height: AppSpacing.lg.h),
                       AppButton(
-                        label: 'Sign In',
+                        label: 'auth.sign_in'.tr(),
                         isLoading: isLoading,
-                        onPressed: isLoading ? null : handleLogin,
+                        onPressed: isLoading ? null : _handleLogin,
                         width: ButtonSize.large,
-                        isFullWidth: false,
+                        isFullWidth: true,
                       ),
                     ],
-                  ),
-                ),
-                SizedBox(height: AppSpacing.xxxl.h),
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 20.w,
-                      children: [
-                        SizedBox(
-                          width: 50.w,
-                          height: 50.w,
-                          child: TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFFEA4335).withValues(alpha: 0.8),
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: AppBorders.button,
-                              ),
-                            ),
-                            child: SvgPicture.asset(AppAssets.googleIcon),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 50.w,
-                          height: 50.w,
-                          child: TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFF4285F4),
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: AppBorders.button,
-                              ),
-                            ),
-                            child: SvgPicture.asset(AppAssets.facebookIcon),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 50.w,
-                          height: 50.w,
-                          child: TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              backgroundColor: const Color(0xFF000000),
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: AppBorders.button,
-                              ),
-                            ),
-                            child: SvgPicture.asset(AppAssets.appleIcon),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: AppSpacing.xl.h),
-                  ],
-                ),
-                InkWell(
-                  onTap: () {
-                    context.push(AppRoutes.signup);
-                  },
-                  child: RichText(
-                    text: TextSpan(
-                      text: 'auth.dont_have_account'.tr(),
-                      style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-                      children: [
-                        TextSpan(
-                          text: 'auth.sign_up'.tr(),
-                          style: TextStyle(
-                            color: cs.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ],

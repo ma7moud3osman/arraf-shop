@@ -1,7 +1,6 @@
 import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
 
-
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
 
@@ -13,31 +12,28 @@ class _OnboardingPageState extends State<OnboardingPage> {
   late final PageController _pageController;
   int _currentIndex = 0;
 
-  late final List<Map<String, dynamic>> _onboardingData;
+  late final List<_Slide> _slides;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _onboardingData = [
-      {
-        'title': 'onboarding.onboarding_title_1'.tr(),
-        'subtitle':
-            'onboarding.onboarding_subtitle_1'.tr(),
-        'pageWidget': const FlutterLogo(size: 200),
-      },
-      {
-        'title': 'onboarding.onboarding_title_2'.tr(),
-        'subtitle':
-            'onboarding.onboarding_subtitle_2'.tr(),
-        'pageWidget': const FlutterLogo(size: 200),
-      },
-      {
-        'title': 'onboarding.onboarding_title_3'.tr(),
-        'subtitle':
-            'onboarding.onboarding_subtitle_3'.tr(),
-        'pageWidget': const FlutterLogo(size: 200),
-      },
+    _slides = [
+      const _Slide(
+        icon: HugeIcons.strokeRoundedBarcodeScan,
+        titleKey: 'onboarding.onboarding_title_1',
+        subtitleKey: 'onboarding.onboarding_subtitle_1',
+      ),
+      const _Slide(
+        icon: HugeIcons.strokeRoundedSmartPhone01,
+        titleKey: 'onboarding.onboarding_title_2',
+        subtitleKey: 'onboarding.onboarding_subtitle_2',
+      ),
+      const _Slide(
+        icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+        titleKey: 'onboarding.onboarding_title_3',
+        subtitleKey: 'onboarding.onboarding_subtitle_3',
+      ),
     ];
   }
 
@@ -47,151 +43,218 @@ class _OnboardingPageState extends State<OnboardingPage> {
     super.dispose();
   }
 
-  void _onGetStarted() {
-    // Navigate back or to home. For template purpose:
-    context.go(AppRoutes.login);
-  }
+  bool get _isLast => _currentIndex == _slides.length - 1;
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return _OnboardingView(
-      theme: theme,
-      colorScheme: colorScheme,
-      textTheme: textTheme,
-      pageController: _pageController,
-      currentIndex: _currentIndex,
-      onboardingData: _onboardingData,
-      onPageChanged: (index) => setState(() => _currentIndex = index),
-      onGetStarted: _onGetStarted,
+  void _onPrimary() {
+    if (_isLast) {
+      context.go(AppRoutes.login);
+      return;
+    }
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
     );
   }
-}
 
-class _OnboardingView extends StatelessWidget {
-  const _OnboardingView({
-    required this.theme,
-    required this.colorScheme,
-    required this.textTheme,
-    required this.pageController,
-    required this.currentIndex,
-    required this.onboardingData,
-    required this.onPageChanged,
-    required this.onGetStarted,
-  });
-
-  final ThemeData theme;
-  final ColorScheme colorScheme;
-  final TextTheme textTheme;
-  final PageController pageController;
-  final int currentIndex;
-  final List<Map<String, dynamic>> onboardingData;
-  final ValueChanged<int> onPageChanged;
-  final VoidCallback onGetStarted;
+  void _onSkip() => context.go(AppRoutes.login);
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.theme.colorScheme;
+    final tt = context.theme.textTheme;
+
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: cs.surface,
       body: SafeArea(
         child: Column(
           children: [
-            // Top branding
+            // Branding + skip
             Padding(
-              padding: EdgeInsets.only(
-                top: AppSpacing.lg.h,
-                bottom: AppSpacing.md.h,
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.lg.w,
+                AppSpacing.lg.h,
+                AppSpacing.lg.w,
+                AppSpacing.sm.h,
               ),
-              child: Text(
-                'FlutterInit.',
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: colorScheme.onSurface,
-                  fontSize: 22.sp,
-                ),
+              child: Row(
+                children: [
+                  Text(
+                    'shared.app_name'.tr(),
+                    style: tt.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: cs.primary,
+                      fontSize: 22.sp,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: _onSkip,
+                    child: Text(
+                      'onboarding.skip'.tr(),
+                      style: tt.labelLarge?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            // PageView
             Expanded(
               child: PageView.builder(
-                controller: pageController,
-                itemCount: onboardingData.length,
-                onPageChanged: onPageChanged,
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      // Dynamic Illustration Section
-                      Expanded(
-                        child: Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: AppSpacing.lg.w,
-                            ),
-                            child: onboardingData[index]['pageWidget'] as Widget,
-                          ),
-                        ),
-                      ),
-                      
-                      // Text Section
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xl.w,
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              onboardingData[index]['title'] as String,
-                              textAlign: TextAlign.center,
-                              style: textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.onSurface,
-                                height: 1.2,
-                                fontSize: 24.sp,
-                              ),
-                            ),
-                            SizedBox(height: AppSpacing.md.h),
-                            Text(
-                              onboardingData[index]['subtitle'] as String,
-                              textAlign: TextAlign.center,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                height: 1.5,
-                                fontSize: 14.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 40.h),
-                    ],
-                  );
-                },
+                controller: _pageController,
+                itemCount: _slides.length,
+                onPageChanged: (i) => setState(() => _currentIndex = i),
+                itemBuilder:
+                    (context, index) => _SlideView(slide: _slides[index]),
               ),
             ),
 
-            // Bottom Section: Dots and Button
+            // Dots
             Padding(
-              padding: EdgeInsets.all(AppSpacing.xl.w),
-              child: Column(
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.md.h),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                   SizedBox(height: AppSpacing.xl.h),
-                  // Get Started Button
-                  AppButton(
-                    label: 'shared.get_started'.tr(),
-                    onPressed: onGetStarted,
-                    variant: ButtonVariant.primary,
-                    width: ButtonSize.medium,
-                  ),
-                  SizedBox(height: AppSpacing.md.h),
+                  for (int i = 0; i < _slides.length; i++)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      margin: EdgeInsets.symmetric(horizontal: 4.w),
+                      height: 8.h,
+                      width: i == _currentIndex ? 24.w : 8.w,
+                      decoration: BoxDecoration(
+                        color:
+                            i == _currentIndex
+                                ? cs.primary
+                                : cs.onSurfaceVariant.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
                 ],
+              ),
+            ),
+
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.xl.w,
+                AppSpacing.md.h,
+                AppSpacing.xl.w,
+                AppSpacing.xl.h,
+              ),
+              child: AppButton(
+                label:
+                    _isLast
+                        ? 'shared.get_started'.tr()
+                        : 'onboarding.next'.tr(),
+                onPressed: _onPrimary,
+                variant: ButtonVariant.primary,
+                width: ButtonSize.large,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _Slide {
+  const _Slide({
+    required this.icon,
+    required this.titleKey,
+    required this.subtitleKey,
+  });
+
+  final List<List<dynamic>> icon;
+  final String titleKey;
+  final String subtitleKey;
+}
+
+class _SlideView extends StatelessWidget {
+  const _SlideView({required this.slide});
+  final _Slide slide;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.theme.colorScheme;
+    final tt = context.theme.textTheme;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl.w),
+      child: Column(
+        children: [
+          Expanded(child: Center(child: _Illustration(icon: slide.icon))),
+          Text(
+            slide.titleKey.tr(),
+            textAlign: TextAlign.center,
+            style: tt.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: cs.onSurface,
+              height: 1.2,
+              fontSize: 26.sp,
+            ),
+          ),
+          SizedBox(height: AppSpacing.md.h),
+          Text(
+            slide.subtitleKey.tr(),
+            textAlign: TextAlign.center,
+            style: tt.bodyMedium?.copyWith(
+              color: cs.onSurfaceVariant,
+              height: 1.6,
+              fontSize: 14.sp,
+            ),
+          ),
+          SizedBox(height: 32.h),
+        ],
+      ),
+    );
+  }
+}
+
+/// Concentric gold rings behind a single large icon — evokes a hallmark
+/// stamp without needing raster assets.
+class _Illustration extends StatelessWidget {
+  const _Illustration({required this.icon});
+  final List<List<dynamic>> icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.theme.colorScheme;
+
+    return SizedBox(
+      width: 220.w,
+      height: 220.w,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 220.w,
+            height: 220.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: cs.primary.withValues(alpha: 0.06),
+            ),
+          ),
+          Container(
+            width: 170.w,
+            height: 170.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: cs.primary.withValues(alpha: 0.12),
+            ),
+          ),
+          Container(
+            width: 120.w,
+            height: 120.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: cs.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          HugeIcon(icon: icon, size: 64.sp, color: cs.primary),
+        ],
       ),
     );
   }

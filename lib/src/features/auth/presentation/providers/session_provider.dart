@@ -1,12 +1,23 @@
 import 'dart:async';
-import 'package:arraf_shop/src/imports/packages_imports.dart';
+
 import 'package:arraf_shop/src/features/auth/domain/entities/user.dart';
 import 'package:arraf_shop/src/features/auth/domain/repositories/auth_repository.dart';
+import 'package:arraf_shop/src/services/secure_storage_service.dart';
+import 'package:flutter/foundation.dart';
 
 enum SessionStatus { unknown, authenticated, unauthenticated }
 
 class SessionProvider extends ChangeNotifier {
+  SessionProvider({
+    required AuthRepository repository,
+    SecureStorageService? storage,
+  })  : _repository = repository,
+        _storage = storage ?? SecureStorageService.instance {
+    _init();
+  }
+
   final AuthRepository _repository;
+  final SecureStorageService _storage;
   StreamSubscription<AppUser?>? _authSub;
 
   SessionStatus _status = SessionStatus.unknown;
@@ -16,11 +27,18 @@ class SessionProvider extends ChangeNotifier {
   AppUser? get user => _user;
   bool get isAuthenticated => _status == SessionStatus.authenticated;
 
-  SessionProvider({required AuthRepository repository}) : _repository = repository {
-    _init();
-  }
-
   Future<void> _init() async {
+    // If the saved auth mode is `employee`, `/profile` will 401 because it
+    // only accepts User Sanctum tokens. Short-circuit to unauthenticated on
+    // the owner side — the EmployeeAuthProvider handles its own rehydrate.
+    final mode = await _storage.readAuthMode();
+    if (mode == 'employee') {
+      _status = SessionStatus.unauthenticated;
+      notifyListeners();
+      _listenToAuthChanges();
+      return;
+    }
+
     final result = await _repository.checkAuthState();
     result.fold(
       (_) {
@@ -38,6 +56,10 @@ class SessionProvider extends ChangeNotifier {
       },
     );
 
+    _listenToAuthChanges();
+  }
+
+  void _listenToAuthChanges() {
     _authSub = _repository.onAuthStateChanged.listen((user) {
       if (user != null) {
         _user = user;
@@ -63,4 +85,3 @@ class SessionProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-

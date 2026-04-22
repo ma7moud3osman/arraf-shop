@@ -15,7 +15,8 @@ extension ContextExtension on BuildContext {
 
   /// Semantic/custom colors (success, warning, info).
   AppColorsExtension get appColors =>
-      theme.extension<AppColorsExtension>() ?? (isDarkMode ? AppPalettes.dark : AppPalettes.light);
+      theme.extension<AppColorsExtension>() ??
+      (isDarkMode ? AppPalettes.dark : AppPalettes.light);
 
   /// Design tokens (spacing, border radii, elevation defaults).
   AppDesignTokens get designTokens =>
@@ -47,11 +48,7 @@ extension ContextExtension on BuildContext {
     ScaffoldMessenger.of(this)
       ..clearSnackBars()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          action: action,
-          duration: duration,
-        ),
+        SnackBar(content: Text(message), action: action, duration: duration),
       );
   }
 
@@ -59,10 +56,7 @@ extension ContextExtension on BuildContext {
     ScaffoldMessenger.of(this)
       ..clearSnackBars()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: appColors.success,
-        ),
+        SnackBar(content: Text(message), backgroundColor: appColors.success),
       );
   }
 
@@ -70,10 +64,7 @@ extension ContextExtension on BuildContext {
     ScaffoldMessenger.of(this)
       ..clearSnackBars()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: colors.error,
-        ),
+        SnackBar(content: Text(message), backgroundColor: colors.error),
       );
   }
 
@@ -91,10 +82,7 @@ extension ContextExtension on BuildContext {
   }
 
   Future<T?> showAppDialog<T>({required WidgetBuilder builder}) {
-    return showDialog<T>(
-      context: this,
-      builder: builder,
-    );
+    return showDialog<T>(context: this, builder: builder);
   }
 
   /// Shows a snackbar with a colour driven by [SnackBarType].
@@ -110,8 +98,8 @@ extension ContextExtension on BuildContext {
     final bg = switch (type) {
       SnackBarType.success => appColors.success,
       SnackBarType.warning => appColors.warning,
-      SnackBarType.error   => colors.error,
-      SnackBarType.info    => colors.inverseSurface,
+      SnackBarType.error => colors.error,
+      SnackBarType.info => colors.inverseSurface,
     };
     ScaffoldMessenger.of(this)
       ..clearSnackBars()
@@ -127,11 +115,12 @@ extension ContextExtension on BuildContext {
   // ── Routing shortcuts ────────────────────────────────────────────────────
   String get currentRoute {
     final router = GoRouter.of(this);
-    final RouteMatch lastMatch = router.routerDelegate.currentConfiguration.last;
-    final RouteMatchList matchList = lastMatch is ImperativeRouteMatch
-        ? lastMatch.matches
-        : router.routerDelegate.currentConfiguration;
+    final RouteMatch lastMatch =
+        router.routerDelegate.currentConfiguration.last;
+    final RouteMatchList matchList =
+        lastMatch is ImperativeRouteMatch
+            ? lastMatch.matches
+            : router.routerDelegate.currentConfiguration;
     return matchList.uri.toString();
   }
-
 }

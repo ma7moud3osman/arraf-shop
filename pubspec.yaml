@@ -4,7 +4,7 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.7.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -52,6 +52,9 @@ dependencies:
   # Logging
   logger: ^2.6.2
 
+  # Realtime (Pusher)
+  pusher_channels_flutter: ^2.4.0
+
   # Media
   image_picker: ^1.2.1
   file_picker: ^10.3.10
@@ -63,6 +66,9 @@ dependencies:
   permission_handler: ^12.0.1
   geolocator: ^14.0.2
 
+  # Calendar view for attendance history
+  table_calendar: ^3.2.0
+
   # Device & System
   device_info_plus: ^11.2.0
   app_version_update: ^6.2.0
@@ -72,7 +78,7 @@ dependencies:
   easy_localization: ^3.0.8
 
   flutter_native_splash: ^2.4.7
-  mobile_scanner: ^5.0.0
+  mobile_scanner: ^7.1.4
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,8 @@
+import 'dart:io' show HttpClient, Platform;
+
 import '../imports/core_imports.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
@@ -21,8 +24,50 @@ class AppConfig {
       ),
     );
 
+    dio.interceptors.add(_localeInterceptor());
     dio.interceptors.add(_authInterceptor());
     dio.interceptors.add(_loggingInterceptor());
+
+    _trustLocalDevHost(dio);
+  }
+
+  /// Read by [_localeInterceptor] to stamp `Accept-Language` on every
+  /// request. Set from the app root once EasyLocalization is ready so
+  /// Laravel can localize validation + domain error messages.
+  static String currentLocale = 'en';
+
+  /// Injects `Accept-Language: <locale>` on every outbound call. Laravel
+  /// picks this up via the SetLocaleFromHeader middleware and localizes
+  /// any `__(...)` string it emits.
+  static Interceptor _localeInterceptor() {
+    return InterceptorsWrapper(
+      onRequest: (options, handler) {
+        options.headers['Accept-Language'] = currentLocale;
+        return handler.next(options);
+      },
+    );
+  }
+
+  /// In debug builds, trust the self-signed cert that Laravel Herd issues for
+  /// `*.test` hosts so the device/simulator can talk to the local backend.
+  /// Skipped on web (no `dart:io`) and disabled in release builds.
+  static void _trustLocalDevHost(Dio dio) {
+    if (kReleaseMode || kIsWeb) return;
+    final host = Uri.tryParse(_getBaseUrl())?.host ?? '';
+    if (!host.endsWith('.test')) return;
+
+    final adapter = dio.httpClientAdapter;
+    if (adapter is! IOHttpClientAdapter) return;
+
+    adapter.createHttpClient = () {
+      final client = HttpClient();
+      client.badCertificateCallback = (_, certHost, _) => certHost == host;
+      return client;
+    };
+    AppLogger.warning(
+      '🔓 Trusting self-signed cert for local dev host: $host '
+      '(${Platform.operatingSystem})',
+    );
   }
 
   /// Injects `Authorization: Bearer <token>` from secure storage on every
@@ -44,7 +89,8 @@ class AppConfig {
       },
       onError: (DioException e, handler) async {
         final isUnauthorized = e.response?.statusCode == 401;
-        final alreadyRetried = e.requestOptions.extra['retriedAfter401'] == true;
+        final alreadyRetried =
+            e.requestOptions.extra['retriedAfter401'] == true;
 
         if (!isUnauthorized || alreadyRetried) {
           return handler.next(e);
@@ -82,21 +128,30 @@ class AppConfig {
   static Interceptor _loggingInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) {
-        AppLogger.info('🌐 [DIO] REQUEST[${options.method}] => PATH: ${options.path}');
+        AppLogger.info(
+          '🌐 [DIO] REQUEST[${options.method}] => PATH: ${options.path}',
+        );
         return handler.next(options);
       },
       onResponse: (response, handler) {
-        AppLogger.info('✅ [DIO] RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
+        AppLogger.info(
+          '✅ [DIO] RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}',
+        );
         return handler.next(response);
       },
       onError: (DioException e, handler) {
-        AppLogger.error('❌ [DIO] ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}');
+        AppLogger.error(
+          '❌ [DIO] ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}',
+        );
         return handler.next(e);
       },
     );
   }
 
   static String _getBaseUrl() {
-    return dotenv.get('API_BASE_URL', fallback: 'https://arraf_backend.test/api/');
+    return dotenv.get(
+      'API_BASE_URL',
+      fallback: 'https://arraf_backend.test/api/',
+    );
   }
 }

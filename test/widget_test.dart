@@ -13,11 +13,11 @@ void main() {
 
     await tester.pumpWidget(
       EasyLocalization(
-        supportedLocales: const [Locale('en'),Locale('ar'),],
+        supportedLocales: const [Locale('en'), Locale('ar')],
         path: 'assets/translations',
         fallbackLocale: const Locale('en'),
         child: const App(),
-      )
+      ),
     );
 
     // Verify that our base app builds successfully.

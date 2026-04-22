@@ -65,4 +65,3 @@ abstract final class AppSpacing {
   /// Vertical gap between form fields.
   static double get formFieldGap => ms;
 }
-
