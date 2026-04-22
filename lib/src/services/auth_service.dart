@@ -59,7 +59,7 @@ class AuthService {
       }
 
       return data;
-    }, requiresNetwork: true);
+    });
   }
 
   /// POST /register — envelope-wrapped `{status, message, data: {user, token}}`.
@@ -93,7 +93,7 @@ class AuthService {
 
       _authStateController.add(user);
       return user;
-    }, requiresNetwork: true);
+    });
   }
 
   /// POST /password/mobile — sends a reset code to the user's mobile.
@@ -104,7 +104,7 @@ class AuthService {
         data: {'mobile': mobile},
         options: Options(extra: {'skipAuth': true}),
       );
-    }, requiresNetwork: true);
+    });
   }
 
   /// POST /sign-out — invalidates the server token, clears local storage.
@@ -116,7 +116,7 @@ class AuthService {
         await _storage.clearActiveToken();
         _authStateController.add(null);
       }
-    }, requiresNetwork: true);
+    });
   }
 
   /// GET /profile — JsonResource-wrapped `{data: {...user fields...}}`.

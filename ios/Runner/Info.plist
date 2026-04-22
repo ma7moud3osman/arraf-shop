@@ -76,5 +76,19 @@
 	<!-- Camera permission for barcode scanning during audits -->
 	<key>NSCameraUsageDescription</key>
 	<string>Scan inventory barcodes during an audit session.</string>
+
+	<!-- Photo library access for image pickers (attaching media to reports) -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Select photos to attach to reports and forms.</string>
+
+	<!-- Dev-only: allow plain HTTP to local/LAN hosts so the simulator and
+	     real devices can reach the Laravel dev server on the Mac's LAN IP.
+	     This flag only relaxes ATS for private/.local addresses; public
+	     internet traffic is still HTTPS-enforced. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

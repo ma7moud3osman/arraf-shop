@@ -1,3 +1,4 @@
+import 'package:arraf_shop/src/features/audits/domain/repositories/audit_repository.dart';
 import 'package:arraf_shop/src/features/audits/presentation/providers/audit_session_provider.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audit_session_screen.dart';
 import 'package:arraf_shop/src/features/audits/presentation/widgets/audit_progress_card.dart';
@@ -25,12 +26,14 @@ void main() {
           FakeAuditRepository()
             ..showHandler =
                 (uuid) async => Right(
-                  makeSession(
-                    uuid: uuid,
-                    scannedCount: 3,
-                    scannedWeightGrams: 42.5,
-                    expectedCount: 20,
-                    progressPercent: 15,
+                  SessionWithScans(
+                    session: makeSession(
+                      uuid: uuid,
+                      scannedCount: 3,
+                      scannedWeightGrams: 42.5,
+                      expectedCount: 20,
+                      progressPercent: 15,
+                    ),
                   ),
                 );
       final realtime = FakeAuditRealtime();

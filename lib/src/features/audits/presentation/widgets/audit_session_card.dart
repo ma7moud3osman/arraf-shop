@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
 
+import '../../../../shared/helpers/format_weight.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../domain/entities/audit_session.dart';
 import '../../domain/entities/audit_status.dart';
@@ -16,6 +18,23 @@ class AuditSessionCard extends StatelessWidget {
 
   final AuditSession session;
   final VoidCallback onTap;
+
+  static String _formatStartedAt(BuildContext context, DateTime at) {
+    return intl.DateFormat.yMMMd(
+      context.locale.toLanguageTag(),
+    ).add_jm().format(at.toLocal());
+  }
+
+  static String _resolveTitle(BuildContext context, AuditSession session) {
+    final notes = session.notes;
+    if (notes != null && notes.isNotEmpty) return notes;
+    final startedAt = session.startedAt;
+    if (startedAt == null) return 'audits.list.untitled'.tr();
+    final date = intl.DateFormat.yMMMd(
+      context.locale.toLanguageTag(),
+    ).format(startedAt.toLocal());
+    return '$date • ${formatWeight(session.expectedWeightGrams)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +56,7 @@ class AuditSessionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      (session.notes?.isNotEmpty ?? false)
-                          ? session.notes!
-                          : 'audits.list.untitled'.tr(),
+                      _resolveTitle(context, session),
                       style: tt.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -56,6 +73,25 @@ class AuditSessionCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (session.startedAt != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.event,
+                            size: 14,
+                            color: cs.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatStartedAt(context, session.startedAt!),
+                            style: tt.bodySmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

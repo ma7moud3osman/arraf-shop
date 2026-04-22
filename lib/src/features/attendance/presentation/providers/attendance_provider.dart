@@ -21,11 +21,17 @@ class AttendanceProvider extends ChangeNotifier {
   AppStatus _actionStatus = AppStatus.initial;
   AttendanceRecord? _today;
   String? _errorMessage;
+  LocationErrorKind? _locationError;
 
   AppStatus get status => _status;
   AppStatus get actionStatus => _actionStatus;
   AttendanceRecord? get today => _today;
   String? get errorMessage => _errorMessage;
+  LocationErrorKind? get locationError => _locationError;
+
+  Future<bool> openLocationSettings() =>
+      Geolocator.openLocationSettings();
+  Future<bool> openAppSettings() => Geolocator.openAppSettings();
 
   bool get canCheckIn => _today?.hasCheckedIn != true;
   bool get canCheckOut =>
@@ -63,6 +69,7 @@ class AttendanceProvider extends ChangeNotifier {
   ) async {
     _actionStatus = AppStatus.loading;
     _errorMessage = null;
+    _locationError = null;
     notifyListeners();
 
     final Position? position;
@@ -71,6 +78,7 @@ class AttendanceProvider extends ChangeNotifier {
     } on _LocationException catch (e) {
       _actionStatus = AppStatus.failure;
       _errorMessage = e.message;
+      _locationError = e.kind;
       notifyListeners();
       return false;
     }
@@ -102,7 +110,10 @@ class AttendanceProvider extends ChangeNotifier {
   Future<Position> _resolvePosition() async {
     final servicesOn = await Geolocator.isLocationServiceEnabled();
     if (!servicesOn) {
-      throw const _LocationException('attendance.errors.location_services_off');
+      throw const _LocationException(
+        'attendance.errors.location_services_off',
+        LocationErrorKind.servicesOff,
+      );
     }
 
     var permission = await Geolocator.checkPermission();
@@ -110,10 +121,16 @@ class AttendanceProvider extends ChangeNotifier {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.denied) {
-      throw const _LocationException('attendance.errors.permission_denied');
+      throw const _LocationException(
+        'attendance.errors.permission_denied',
+        LocationErrorKind.permissionDenied,
+      );
     }
     if (permission == LocationPermission.deniedForever) {
-      throw const _LocationException('attendance.errors.permission_permanent');
+      throw const _LocationException(
+        'attendance.errors.permission_permanent',
+        LocationErrorKind.permissionPermanent,
+      );
     }
 
     try {
@@ -124,12 +141,23 @@ class AttendanceProvider extends ChangeNotifier {
         ),
       );
     } catch (_) {
-      throw const _LocationException('attendance.errors.fix_timeout');
+      throw const _LocationException(
+        'attendance.errors.fix_timeout',
+        LocationErrorKind.fixTimeout,
+      );
     }
   }
 }
 
+enum LocationErrorKind {
+  servicesOff,
+  permissionDenied,
+  permissionPermanent,
+  fixTimeout,
+}
+
 class _LocationException implements Exception {
-  const _LocationException(this.message);
+  const _LocationException(this.message, this.kind);
   final String message;
+  final LocationErrorKind kind;
 }

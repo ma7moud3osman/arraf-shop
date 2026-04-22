@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../shared/enums/app_status.dart';
 import '../../../../utils/failure.dart';
+import '../../data/audit_failures.dart';
 import '../../domain/entities/audit_scan.dart';
 import '../../domain/entities/audit_scan_result.dart';
 import '../../domain/entities/audit_session.dart';
+import '../../domain/entities/audit_status.dart';
 import '../../domain/realtime/audit_realtime.dart';
 import '../../domain/repositories/audit_repository.dart';
 
@@ -47,6 +49,13 @@ class AuditSessionProvider extends ChangeNotifier {
   final List<AuditScan> _feed = [];
   List<AuditScan> get feed => List.unmodifiable(_feed);
 
+  /// All barcodes known to be recorded in this session (from join seed +
+  /// every scan response + every realtime event). Used for local-first
+  /// duplicate detection so the scanner can reject dupes without a
+  /// round-trip.
+  final Set<String> _recordedBarcodes = <String>{};
+  Set<String> get recordedBarcodes => Set.unmodifiable(_recordedBarcodes);
+
   /// Tracks the most recent [scan] call independently so it doesn't clobber
   /// the top-level [status] once the session is loaded.
   AppStatus _scanStatus = AppStatus.initial;
@@ -61,11 +70,23 @@ class AuditSessionProvider extends ChangeNotifier {
   StreamSubscription<AuditScanEvent>? _realtimeSub;
   int? _subscribedSessionId;
 
+  StreamSubscription<AuditSessionEvent>? _shopSub;
+  int? _subscribedShopId;
+
   // Monotonic counter for optimistic placeholder ids (always negative so they
   // can't collide with real server-assigned ids, which are positive).
   int _optimisticSeq = 0;
 
   bool _disposed = false;
+
+  bool _scanInFlight = false;
+  bool get scanInFlight => _scanInFlight;
+
+  /// Monotonic counter incremented whenever the server rejects a scan as a
+  /// duplicate (HTTP 409). The screen observes this to toast "already scanned"
+  /// without flooding the main error UI.
+  int _duplicateTick = 0;
+  int get duplicateTick => _duplicateTick;
 
   // ---------------------------------------------------------------------------
   // Public API
@@ -82,8 +103,20 @@ class AuditSessionProvider extends ChangeNotifier {
         _status = AppStatus.failure;
         _errorMessage = f.message;
       },
-      (AuditSession s) {
-        _session = s;
+      (SessionWithScans payload) {
+        _session = payload.session;
+        // Feed shows only real recorded scans (never duplicates).
+        _feed
+          ..clear()
+          ..addAll(payload.recentScans
+              .where((s) => s.result != AuditScanResult.duplicate)
+              .take(maxFeedSize));
+        // The recorded-barcodes set must include *all* previously scanned
+        // barcodes (including historical duplicates) so the scanner can
+        // suppress them locally.
+        _recordedBarcodes
+          ..clear()
+          ..addAll(payload.recentScans.map((s) => s.barcode));
         _status = AppStatus.success;
       },
     );
@@ -104,6 +137,22 @@ class AuditSessionProvider extends ChangeNotifier {
       _safeNotify();
       return;
     }
+
+    // Local-first duplicate check: if this barcode is already known to be
+    // recorded in this session, never hit the server. Bump the toast tick
+    // so the screen shows a "duplicate" hint. Duplicates are *not* kept in
+    // the feed — the feed only shows real recorded scans.
+    if (_recordedBarcodes.contains(barcode)) {
+      _duplicateTick += 1;
+      _safeNotify();
+      return;
+    }
+
+    // Re-entry guard: serialize scans so a hold-the-code-in-view storm can't
+    // stack dozens of in-flight POSTs. The scanner view also debounces, but
+    // debounce windows < network latency aren't enough on their own.
+    if (_scanInFlight) return;
+    _scanInFlight = true;
 
     final optimisticId = _nextOptimisticId();
     final optimistic = AuditScan(
@@ -129,20 +178,39 @@ class AuditSessionProvider extends ChangeNotifier {
     result.fold(
       (Failure f) {
         _feed.removeWhere((s) => s.id == optimisticId);
-        _scanStatus = AppStatus.failure;
-        _errorMessage = f.message;
+        if (f is ConflictFailure) {
+          // Another device (or an in-flight race from this one) already
+          // recorded this barcode. Keep the barcode out of the feed — just
+          // nudge the toast and remember it's known so future scans short-
+          // circuit locally.
+          _recordedBarcodes.add(barcode);
+          _duplicateTick += 1;
+          _scanStatus = AppStatus.success;
+        } else {
+          _scanStatus = AppStatus.failure;
+          _errorMessage = f.message;
+        }
       },
       (ScanResponse response) {
-        final idx = _feed.indexWhere((s) => s.id == optimisticId);
-        if (idx >= 0) {
-          _feed[idx] = response.scan;
-        } else {
-          _prepend(response.scan);
-        }
+        _recordedBarcodes.add(response.scan.barcode);
         _session = response.session;
+        if (response.scan.result == AuditScanResult.duplicate) {
+          // Legacy path (kept for older backends): drop the optimistic row
+          // and surface as a toast instead of a feed entry.
+          _feed.removeWhere((s) => s.id == optimisticId);
+          _duplicateTick += 1;
+        } else {
+          final idx = _feed.indexWhere((s) => s.id == optimisticId);
+          if (idx >= 0) {
+            _feed[idx] = response.scan;
+          } else {
+            _prepend(response.scan);
+          }
+        }
         _scanStatus = AppStatus.success;
       },
     );
+    _scanInFlight = false;
     _safeNotify();
   }
 
@@ -175,25 +243,43 @@ class AuditSessionProvider extends ChangeNotifier {
   bool subscribe() {
     final current = _session;
     if (current == null) return false;
-    if (_realtimeSub != null) return true;
 
     final sessionId = _sessionIdFromChannel(current.channel);
     if (sessionId == null) return false;
 
-    _subscribedSessionId = sessionId;
-    _realtimeSub = _realtime
-        .subscribe(sessionId)
-        .listen(_onRealtimeEvent, onError: _onRealtimeError);
+    if (_realtimeSub == null) {
+      _subscribedSessionId = sessionId;
+      _realtimeSub = _realtime
+          .subscribe(sessionId)
+          .listen(_onRealtimeEvent, onError: _onRealtimeError);
+    }
+
+    // Also listen to the shop-wide feed so status changes driven by another
+    // device (notably completion) propagate to this screen.
+    if (_shopSub == null) {
+      _subscribedShopId = current.shopId;
+      _shopSub = _realtime
+          .subscribeShop(current.shopId)
+          .listen(_onShopEvent, onError: _onRealtimeError);
+    }
     return true;
   }
 
   Future<void> unsubscribe() async {
     await _realtimeSub?.cancel();
     _realtimeSub = null;
-    final id = _subscribedSessionId;
+    final sessionId = _subscribedSessionId;
     _subscribedSessionId = null;
-    if (id != null) {
-      await _realtime.unsubscribe(id);
+    if (sessionId != null) {
+      await _realtime.unsubscribe(sessionId);
+    }
+
+    await _shopSub?.cancel();
+    _shopSub = null;
+    final shopId = _subscribedShopId;
+    _subscribedShopId = null;
+    if (shopId != null) {
+      await _realtime.unsubscribeShop(shopId);
     }
   }
 
@@ -202,18 +288,27 @@ class AuditSessionProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------------
 
   void _onRealtimeEvent(AuditScanEvent event) {
-    // Idempotency: drop events whose scan id is already in the feed.
-    final exists = _feed.any((s) => s.id == event.scanId);
-    if (exists) return;
+    // Always remember the barcode so future local scans can short-circuit.
+    _recordedBarcodes.add(event.barcode);
 
-    final scan = AuditScan(
-      id: event.scanId,
-      result: event.result,
-      barcode: event.barcode,
-      deviceLabel: event.deviceLabel,
-      scannedAt: event.scannedAt,
-    );
-    _prepend(scan);
+    // Duplicates never enter the feed — they're already represented by the
+    // original Valid row.
+    if (event.result != AuditScanResult.duplicate) {
+      // Idempotency: drop events whose scan id is already in the feed.
+      final exists = _feed.any((s) => s.id == event.scanId);
+      if (!exists) {
+        _prepend(
+          AuditScan(
+            id: event.scanId,
+            result: event.result,
+            barcode: event.barcode,
+            productName: event.productName,
+            deviceLabel: event.deviceLabel,
+            scannedAt: event.scannedAt,
+          ),
+        );
+      }
+    }
 
     final current = _session;
     if (current != null) {
@@ -228,6 +323,31 @@ class AuditSessionProvider extends ChangeNotifier {
 
   void _onRealtimeError(Object error) {
     _errorMessage = error.toString();
+    _safeNotify();
+  }
+
+  void _onShopEvent(AuditSessionEvent event) {
+    final current = _session;
+    if (current == null || current.uuid != event.uuid) return;
+
+    final nextStatus = AuditStatus.fromString(event.status);
+    _session = AuditSession(
+      uuid: current.uuid,
+      shopId: current.shopId,
+      status: nextStatus,
+      expectedCount: event.expectedCount,
+      expectedWeightGrams: event.expectedWeightGrams,
+      scannedCount: event.scannedCount,
+      scannedWeightGrams: event.scannedWeightGrams,
+      progressPercent: event.progressPercent,
+      channel: current.channel,
+      startedAt: event.startedAt ?? current.startedAt,
+      completedAt: event.completedAt ?? current.completedAt,
+      notes: current.notes,
+      startedBy: current.startedBy,
+      completedBy: current.completedBy,
+      reportSnapshot: current.reportSnapshot,
+    );
     _safeNotify();
   }
 
@@ -258,7 +378,10 @@ class AuditSessionProvider extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
-    _realtimeSub?.cancel();
+    // Idempotent — safe if the screen already called unsubscribe() from its
+    // own dispose. Tears down both subscriptions (session + shop) and
+    // releases refcounts on the underlying Pusher channels.
+    unawaited(unsubscribe());
     super.dispose();
   }
 }
@@ -272,11 +395,14 @@ class _SessionCountersPatch {
     required int scannedCount,
     required double scannedWeightGrams,
   }) {
-    final expected = base.expectedWeightGrams;
+    // Match the backend formula: percent is (scanned_count / expected_count).
+    // Previously this was computed from weights, which drifted away from the
+    // value the server returns and left the % label frozen at 0.
+    final expected = base.expectedCount;
     final percent =
         expected == 0
             ? 0
-            : ((scannedWeightGrams / expected) * 100).clamp(0, 100).round();
+            : ((scannedCount / expected) * 100).clamp(0, 100).round();
 
     return AuditSession(
       uuid: base.uuid,

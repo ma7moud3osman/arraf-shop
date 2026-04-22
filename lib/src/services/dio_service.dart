@@ -16,7 +16,6 @@ class DioService {
   }) {
     return runTask(
       () => AppConfig.dio.get(path, queryParameters: queryParameters),
-      requiresNetwork: true,
     );
   }
 
@@ -31,7 +30,6 @@ class DioService {
         data: data,
         queryParameters: queryParameters,
       ),
-      requiresNetwork: true,
     );
   }
 
@@ -43,7 +41,6 @@ class DioService {
     return runTask(
       () =>
           AppConfig.dio.put(path, data: data, queryParameters: queryParameters),
-      requiresNetwork: true,
     );
   }
 
@@ -58,7 +55,6 @@ class DioService {
         data: data,
         queryParameters: queryParameters,
       ),
-      requiresNetwork: true,
     );
   }
 
@@ -73,7 +69,6 @@ class DioService {
         data: data,
         queryParameters: queryParameters,
       ),
-      requiresNetwork: true,
     );
   }
 }

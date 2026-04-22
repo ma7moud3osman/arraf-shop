@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
 
 import '../../domain/entities/audit_scan.dart';
 import '../../domain/entities/audit_scan_result.dart';
@@ -16,6 +17,7 @@ class AuditScanRow extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final (color, label) = _resultStyle(cs, scan.result);
     final isOptimistic = scan.id < 0;
+    final hasName = scan.productName != null && scan.productName!.isNotEmpty;
 
     return Opacity(
       opacity: isOptimistic ? 0.6 : 1.0,
@@ -34,7 +36,7 @@ class AuditScanRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    scan.displayLabel,
+                    hasName ? scan.productName! : scan.barcode,
                     style: tt.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       fontFeatures: const [FontFeature.tabularFigures()],
@@ -42,6 +44,18 @@ class AuditScanRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (hasName) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      scan.barcode,
+                      style: tt.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const SizedBox(height: 2),
                   Text(label, style: tt.bodySmall?.copyWith(color: color)),
                 ],
@@ -49,7 +63,7 @@ class AuditScanRow extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              _formatTime(scan.scannedAt),
+              _formatTime(context, scan.scannedAt),
               style: tt.bodySmall?.copyWith(
                 color: cs.onSurfaceVariant,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -79,11 +93,7 @@ class AuditScanRow extends StatelessWidget {
     };
   }
 
-  static String _formatTime(DateTime t) {
-    final local = t.toLocal();
-    final hh = local.hour.toString().padLeft(2, '0');
-    final mm = local.minute.toString().padLeft(2, '0');
-    final ss = local.second.toString().padLeft(2, '0');
-    return '$hh:$mm:$ss';
+  static String _formatTime(BuildContext context, DateTime t) {
+    return intl.DateFormat.jms(context.locale.toLanguageTag()).format(t.toLocal());
   }
 }

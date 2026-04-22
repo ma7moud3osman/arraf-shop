@@ -84,15 +84,44 @@ class AuditProgressCard extends StatelessWidget {
               valueColor: AlwaysStoppedAnimation(cs.primary),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'audits.session.weight_counts'.tr(
-              namedArgs: {
-                'scanned': formatWeight(session.scannedWeightGrams),
-                'expected': formatWeight(session.expectedWeightGrams),
-              },
-            ),
-            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.scale_outlined,
+                size: 16,
+                color: cs.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'audits.session.weight_title'.tr(),
+                style: tt.labelMedium?.copyWith(
+                  color: cs.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text.rich(
+                TextSpan(
+                  style: tt.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                  children: [
+                    TextSpan(text: formatWeight(session.scannedWeightGrams)),
+                    TextSpan(
+                      text:
+                          '  /  ${formatWeight(session.expectedWeightGrams)}',
+                      style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

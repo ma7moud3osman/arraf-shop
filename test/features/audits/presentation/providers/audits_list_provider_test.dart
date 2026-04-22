@@ -9,14 +9,19 @@ import '_fakes.dart';
 
 void main() {
   late FakeAuditRepository repo;
+  late FakeAuditRealtime realtime;
   late AuditsListProvider provider;
 
   setUp(() {
     repo = FakeAuditRepository();
-    provider = AuditsListProvider(repository: repo);
+    realtime = FakeAuditRealtime();
+    provider = AuditsListProvider(repository: repo, realtime: realtime);
   });
 
-  tearDown(() => provider.dispose());
+  tearDown(() async {
+    provider.dispose();
+    await realtime.close();
+  });
 
   test('initial state is AppStatus.initial with an empty list', () {
     expect(provider.status, AppStatus.initial);

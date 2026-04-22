@@ -100,7 +100,7 @@ class FakeAuditRepository implements AuditRepository {
   FutureEither<Paginated<AuditSession>> Function({int page, String? status})?
   listHandler;
   FutureEither<AuditSession> Function({String? notes})? startHandler;
-  FutureEither<AuditSession> Function(String uuid)? showHandler;
+  FutureEither<SessionWithScans> Function(String uuid)? showHandler;
   FutureEither<ScanResponse> Function({
     required String uuid,
     required String barcode,
@@ -146,10 +146,12 @@ class FakeAuditRepository implements AuditRepository {
   }
 
   @override
-  FutureEither<AuditSession> show(String uuid) {
+  FutureEither<SessionWithScans> show(String uuid) {
     final h = showHandler;
     if (h != null) return h(uuid);
-    return Future.value(Right(makeSession(uuid: uuid)));
+    return Future.value(
+      Right(SessionWithScans(session: makeSession(uuid: uuid))),
+    );
   }
 
   @override
@@ -249,15 +251,22 @@ class FakeAuditRepository implements AuditRepository {
 
 class FakeAuditRealtime implements AuditRealtime {
   final _events = StreamController<AuditScanEvent>.broadcast();
+  final _shopEvents = StreamController<AuditSessionEvent>.broadcast();
   final _connection = StreamController<RealtimeConnectionState>.broadcast();
 
   int subscribeCalls = 0;
   int unsubscribeCalls = 0;
   int? lastSubscribedSessionId;
 
+  int shopSubscribeCalls = 0;
+  int shopUnsubscribeCalls = 0;
+  int? lastSubscribedShopId;
+
   void emit(AuditScanEvent event) => _events.add(event);
 
   void emitError(Object error) => _events.addError(error);
+
+  void emitShop(AuditSessionEvent event) => _shopEvents.add(event);
 
   @override
   Stream<AuditScanEvent> subscribe(int sessionId) {
@@ -272,10 +281,23 @@ class FakeAuditRealtime implements AuditRealtime {
   }
 
   @override
+  Stream<AuditSessionEvent> subscribeShop(int shopId) {
+    shopSubscribeCalls += 1;
+    lastSubscribedShopId = shopId;
+    return _shopEvents.stream;
+  }
+
+  @override
+  Future<void> unsubscribeShop(int shopId) async {
+    shopUnsubscribeCalls += 1;
+  }
+
+  @override
   Stream<RealtimeConnectionState> get connectionState => _connection.stream;
 
   Future<void> close() async {
     await _events.close();
+    await _shopEvents.close();
     await _connection.close();
   }
 }

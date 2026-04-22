@@ -20,6 +20,18 @@ class AppErrorHandler {
       if (status != null) {
         return _fallbackForStatus(status);
       }
+
+      // No HTTP response: connection refused, DNS failure, timeout, etc.
+      // Surface a single "no internet" message rather than Dio's raw text.
+      switch (error.type) {
+        case DioExceptionType.connectionError:
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          return 'No internet connection. Please check your connection and try again.';
+        default:
+          break;
+      }
     }
 
     try {

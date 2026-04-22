@@ -65,6 +65,12 @@ class PusherService implements AuditRealtime {
   /// leave the Pusher channel and close the stream controller.
   final Map<int, int> _sessionRefCount = {};
 
+  /// Per-shop fan-out streams for the audits list realtime feed.
+  final Map<int, StreamController<AuditSessionEvent>> _shopControllers = {};
+
+  /// Per-shop subscriber refcount, mirror of [_sessionRefCount].
+  final Map<int, int> _shopRefCount = {};
+
   final StreamController<RealtimeConnectionState> _connectionController =
       StreamController<RealtimeConnectionState>.broadcast();
 
@@ -140,9 +146,22 @@ class PusherService implements AuditRealtime {
   /// Exposed for tests / channel-name sanity checks.
   static String channelFor(int sessionId) => 'private-shop-audit.$sessionId';
 
+  /// Exposed for tests / channel-name sanity checks.
+  static String shopChannelFor(int shopId) => 'private-shop-audits.$shopId';
+
   /// Parse `private-shop-audit.17` back to `17`. Returns `null` on mismatch.
+  /// `private-shop-audits.5` (note the trailing `s`) is explicitly rejected
+  /// so the two channel spaces can't be confused by the event router.
   static int? sessionIdFromChannel(String channelName) {
     const prefix = 'private-shop-audit.';
+    if (!channelName.startsWith(prefix)) return null;
+    if (channelName.startsWith('private-shop-audits.')) return null;
+    return int.tryParse(channelName.substring(prefix.length));
+  }
+
+  /// Parse `private-shop-audits.5` back to `5`.
+  static int? shopIdFromChannel(String channelName) {
+    const prefix = 'private-shop-audits.';
     if (!channelName.startsWith(prefix)) return null;
     return int.tryParse(channelName.substring(prefix.length));
   }
@@ -157,6 +176,71 @@ class PusherService implements AuditRealtime {
         stack,
       ]);
       _sessionControllers[sessionId]?.addError(error, stack);
+    }
+  }
+
+  @override
+  Stream<AuditSessionEvent> subscribeShop(int shopId) {
+    final controller = _shopControllers.putIfAbsent(
+      shopId,
+      () => StreamController<AuditSessionEvent>.broadcast(),
+    );
+    final firstSubscriber = (_shopRefCount[shopId] ?? 0) == 0;
+    _shopRefCount[shopId] = (_shopRefCount[shopId] ?? 0) + 1;
+
+    if (firstSubscriber) {
+      unawaited(_joinShop(shopId));
+    }
+
+    return controller.stream;
+  }
+
+  @override
+  Future<void> unsubscribeShop(int shopId) async {
+    final remaining = (_shopRefCount[shopId] ?? 0) - 1;
+    if (remaining > 0) {
+      _shopRefCount[shopId] = remaining;
+      return;
+    }
+
+    _shopRefCount.remove(shopId);
+    final controller = _shopControllers.remove(shopId);
+    final channelName = shopChannelFor(shopId);
+
+    if (_initialized) {
+      try {
+        await _pusher.unsubscribe(channelName: channelName);
+      } catch (error, stack) {
+        AppLogger.error('Pusher unsubscribe failed for $channelName', [
+          error,
+          stack,
+        ]);
+      }
+    }
+
+    await controller?.close();
+
+    if (_initialized &&
+        _sessionControllers.isEmpty &&
+        _shopControllers.isEmpty) {
+      try {
+        await _pusher.disconnect();
+      } catch (error, stack) {
+        AppLogger.error('Pusher disconnect failed', [error, stack]);
+      }
+    }
+  }
+
+  Future<void> _joinShop(int shopId) async {
+    try {
+      await _ensureInitialized();
+      await _pusher.subscribe(channelName: shopChannelFor(shopId));
+    } catch (error, stack) {
+      AppLogger.error('Pusher subscribe failed for shop $shopId', [
+        error,
+        stack,
+      ]);
+      _shopControllers[shopId]?.addError(error, stack);
     }
   }
 
@@ -201,30 +285,23 @@ class PusherService implements AuditRealtime {
   }
 
   void _handleEvent(PusherEvent event) {
-    // We only care about real app events, not Pusher internal pings / subs.
-    if (event.eventName != 'scan.recorded') return;
+    switch (event.eventName) {
+      case 'scan.recorded':
+        _dispatchScanEvent(event);
+      case 'session.updated':
+        _dispatchShopSessionEvent(event);
+    }
+  }
 
+  void _dispatchScanEvent(PusherEvent event) {
     final sessionId = sessionIdFromChannel(event.channelName);
     if (sessionId == null) return;
 
     final controller = _sessionControllers[sessionId];
     if (controller == null || controller.isClosed) return;
 
-    final Map<String, dynamic> payload;
-    try {
-      final raw = event.data;
-      payload =
-          (raw is Map)
-              ? Map<String, dynamic>.from(raw)
-              : Map<String, dynamic>.from(jsonDecode(raw as String) as Map);
-    } catch (error, stack) {
-      AppLogger.error('Malformed scan.recorded payload for $sessionId', [
-        error,
-        stack,
-      ]);
-      controller.addError(error, stack);
-      return;
-    }
+    final payload = _decodePayload(event.data, 'scan.recorded $sessionId');
+    if (payload == null) return;
 
     try {
       controller.add(AuditScanEvent.fromMap(payload));
@@ -234,6 +311,38 @@ class PusherService implements AuditRealtime {
         stack,
       ]);
       controller.addError(error, stack);
+    }
+  }
+
+  void _dispatchShopSessionEvent(PusherEvent event) {
+    final shopId = shopIdFromChannel(event.channelName);
+    if (shopId == null) return;
+
+    final controller = _shopControllers[shopId];
+    if (controller == null || controller.isClosed) return;
+
+    final payload = _decodePayload(event.data, 'session.updated shop $shopId');
+    if (payload == null) return;
+
+    try {
+      controller.add(AuditSessionEvent.fromMap(payload));
+    } on FormatException catch (error, stack) {
+      AppLogger.error('Failed to parse AuditSessionEvent for $shopId', [
+        error,
+        stack,
+      ]);
+      controller.addError(error, stack);
+    }
+  }
+
+  Map<String, dynamic>? _decodePayload(dynamic raw, String context) {
+    try {
+      return raw is Map
+          ? Map<String, dynamic>.from(raw)
+          : Map<String, dynamic>.from(jsonDecode(raw as String) as Map);
+    } catch (error, stack) {
+      AppLogger.error('Malformed payload [$context]', [error, stack]);
+      return null;
     }
   }
 
@@ -277,6 +386,11 @@ class PusherService implements AuditRealtime {
     }
     _sessionControllers.clear();
     _sessionRefCount.clear();
+    for (final controller in _shopControllers.values) {
+      await controller.close();
+    }
+    _shopControllers.clear();
+    _shopRefCount.clear();
     if (!_connectionController.isClosed) {
       await _connectionController.close();
     }

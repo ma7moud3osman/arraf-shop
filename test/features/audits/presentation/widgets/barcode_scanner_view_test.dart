@@ -47,25 +47,8 @@ void main() {
       expect(scanned, ['7-A1B2C3D4']);
     });
 
-    testWidgets('debounces duplicate scans within 800ms', (tester) async {
-      final scanned = <String>[];
-      final key = GlobalKey<BarcodeScannerViewState>();
-
-      await tester.pumpWidget(
-        MaterialApp(home: BarcodeScannerView(key: key, onBarcode: scanned.add)),
-      );
-      await tester.pump();
-
-      final state = key.currentState!;
-      state.debugHandleScan('7-A1B2C3D4');
-      state.debugHandleScan('7-A1B2C3D4');
-      state.debugHandleScan('7-A1B2C3D4');
-
-      expect(scanned, ['7-A1B2C3D4']);
-    });
-
     testWidgets(
-      'forwards a different barcode even within the debounce window',
+      'debounces the same barcode within the sameBarcodeWindow',
       (tester) async {
         final scanned = <String>[];
         final key = GlobalKey<BarcodeScannerViewState>();
@@ -77,15 +60,67 @@ void main() {
         );
         await tester.pump();
 
-        key.currentState!
-          ..debugHandleScan('AAA')
-          ..debugHandleScan('BBB');
+        final state = key.currentState!;
+        state.debugHandleScan('7-A1B2C3D4');
+        state.debugHandleScan('7-A1B2C3D4');
+        state.debugHandleScan('7-A1B2C3D4');
+
+        expect(scanned, ['7-A1B2C3D4']);
+      },
+    );
+
+    testWidgets(
+      're-fires the same barcode once the sameBarcodeWindow elapses',
+      (tester) async {
+        final scanned = <String>[];
+        final key = GlobalKey<BarcodeScannerViewState>();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: BarcodeScannerView(key: key, onBarcode: scanned.add),
+          ),
+        );
+        await tester.pump();
+
+        key.currentState!.debugHandleScan('7-A1B2C3D4');
+        await tester.runAsync(
+          () => Future<void>.delayed(
+            BarcodeScannerView.sameBarcodeWindow +
+                const Duration(milliseconds: 50),
+          ),
+        );
+        key.currentState!.debugHandleScan('7-A1B2C3D4');
+
+        expect(scanned, ['7-A1B2C3D4', '7-A1B2C3D4']);
+      },
+    );
+
+    testWidgets(
+      'forwards distinct barcodes once the cooldown elapses',
+      (tester) async {
+        final scanned = <String>[];
+        final key = GlobalKey<BarcodeScannerViewState>();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: BarcodeScannerView(key: key, onBarcode: scanned.add),
+          ),
+        );
+        await tester.pump();
+
+        key.currentState!.debugHandleScan('AAA');
+        await tester.runAsync(
+          () => Future<void>.delayed(
+            BarcodeScannerView.cooldownWindow + const Duration(milliseconds: 50),
+          ),
+        );
+        key.currentState!.debugHandleScan('BBB');
 
         expect(scanned, ['AAA', 'BBB']);
       },
     );
 
-    testWidgets('re-fires same barcode after the debounce window', (
+    testWidgets('drops a second distinct barcode within the cooldown', (
       tester,
     ) async {
       final scanned = <String>[];
@@ -96,17 +131,11 @@ void main() {
       );
       await tester.pump();
 
-      key.currentState!.debugHandleScan('AAA');
-      // Use runAsync so a real-time delay can elapse; the widget uses
-      // DateTime.now() which is not fast-forwarded by tester.pump.
-      await tester.runAsync(
-        () => Future<void>.delayed(
-          BarcodeScannerView.debounceWindow + const Duration(milliseconds: 50),
-        ),
-      );
-      key.currentState!.debugHandleScan('AAA');
+      key.currentState!
+        ..debugHandleScan('AAA')
+        ..debugHandleScan('BBB');
 
-      expect(scanned, ['AAA', 'AAA']);
+      expect(scanned, ['AAA']);
     });
 
     testWidgets('swallows scans while paused', (tester) async {
@@ -124,10 +153,6 @@ void main() {
       );
       await tester.pump();
 
-      // debugHandleScan bypasses the paused check by design (it's the
-      // contract-level entry). The public pause guard lives on the camera
-      // onDetect path, which we exercise by updating the widget and
-      // confirming the controller is asked to stop.
       await tester.pumpWidget(
         MaterialApp(
           home: BarcodeScannerView(

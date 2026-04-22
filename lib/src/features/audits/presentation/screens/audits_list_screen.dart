@@ -11,6 +11,7 @@ import '../../domain/entities/audit_session.dart';
 import '../../domain/entities/audit_status.dart';
 import '../providers/audits_list_provider.dart';
 import '../widgets/audit_session_card.dart';
+import '../widgets/start_audit_session_dialog.dart';
 
 /// Paginated list of audit sessions with pull-to-refresh and a FAB
 /// that starts a new session (owner-only).
@@ -39,16 +40,38 @@ class _AuditsListScreenState extends State<AuditsListScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final provider = context.read<AuditsListProvider>();
       if (provider.status == AppStatus.initial) {
         provider.load();
       }
+      // Subscribe to shop-wide audit events so the cards update whenever
+      // any device scans / starts / completes a session.
+      provider.subscribeRealtime();
     });
   }
 
+  @override
+  void dispose() {
+    // Cached provider ref is needed because context is deactivated by dispose.
+    _provider?.unsubscribeRealtime();
+    super.dispose();
+  }
+
+  AuditsListProvider? _provider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _provider ??= context.read<AuditsListProvider>();
+  }
+
   Future<void> _startNew() async {
+    final title = await StartAuditSessionDialog.show(context);
+    if (!mounted || title == null) return;
+
     final provider = context.read<AuditsListProvider>();
-    await provider.startNew();
+    await provider.startNew(notes: title.isEmpty ? null : title);
     if (!mounted) return;
 
     if (provider.startStatus == AppStatus.failure) {

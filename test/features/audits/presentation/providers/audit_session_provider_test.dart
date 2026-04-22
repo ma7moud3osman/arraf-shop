@@ -1,3 +1,4 @@
+import 'package:arraf_shop/src/features/audits/data/audit_failures.dart';
 import 'package:arraf_shop/src/features/audits/domain/entities/audit_scan.dart';
 import 'package:arraf_shop/src/features/audits/domain/entities/audit_scan_result.dart';
 import 'package:arraf_shop/src/features/audits/domain/entities/audit_status.dart';
@@ -37,8 +38,9 @@ void main() {
 
   group('join', () {
     test('loads and exposes the session on success', () async {
-      repo.showHandler =
-          (uuid) async => Right(makeSession(uuid: uuid, scannedCount: 5));
+      repo.showHandler = (uuid) async => Right(
+        SessionWithScans(session: makeSession(uuid: uuid, scannedCount: 5)),
+      );
 
       await provider.join('uuid-xyz');
 
@@ -64,7 +66,7 @@ void main() {
 
   group('scan (optimistic)', () {
     setUp(() async {
-      repo.showHandler = (uuid) async => Right(makeSession(uuid: uuid));
+      repo.showHandler = (uuid) async => Right(SessionWithScans(session: makeSession(uuid: uuid)));
       await provider.join('uuid-1');
     });
 
@@ -133,8 +135,33 @@ void main() {
       },
     );
 
-    test('duplicate result is still added to the feed exactly once', () async {
-      final dupScan = makeScan(id: 42, result: AuditScanResult.duplicate);
+    test(
+      'conflict (409) bumps duplicateTick and keeps scanStatus success',
+      () async {
+        repo.recordScanHandler =
+            ({
+              required String uuid,
+              required String barcode,
+              required String deviceLabel,
+              int? shopEmployeeId,
+            }) async => const Left(ConflictFailure('already scanned'));
+
+        final before = provider.duplicateTick;
+        await provider.scan('dup-barcode');
+
+        expect(provider.feed, isEmpty);
+        expect(provider.scanStatus, AppStatus.success);
+        expect(provider.duplicateTick, before + 1);
+      },
+    );
+
+    test('server-returned duplicate is kept out of the feed, toast only',
+        () async {
+      final dupScan = makeScan(
+        id: 42,
+        barcode: 'same-barcode',
+        result: AuditScanResult.duplicate,
+      );
       repo.recordScanHandler =
           ({
             required String uuid,
@@ -144,12 +171,43 @@ void main() {
           }) async =>
               Right(ScanResponse(scan: dupScan, session: provider.session!));
 
+      final before = provider.duplicateTick;
       await provider.scan('same-barcode');
 
-      expect(provider.feed, hasLength(1));
-      expect(provider.feed.single.id, 42);
-      expect(provider.feed.single.result, AuditScanResult.duplicate);
+      expect(provider.feed, isEmpty);
+      expect(provider.duplicateTick, before + 1);
+      expect(provider.recordedBarcodes, contains('same-barcode'));
     });
+
+    test(
+      'local-first: repeat of a known barcode skips the server entirely',
+      () async {
+        var calls = 0;
+        repo.recordScanHandler =
+            ({
+              required String uuid,
+              required String barcode,
+              required String deviceLabel,
+              int? shopEmployeeId,
+            }) async {
+              calls += 1;
+              return Right(
+                ScanResponse(
+                  scan: makeScan(id: 100, barcode: barcode),
+                  session: provider.session!,
+                ),
+              );
+            };
+
+        await provider.scan('X');
+        expect(calls, 1);
+
+        final before = provider.duplicateTick;
+        await provider.scan('X');
+        expect(calls, 1, reason: 'repeat must not hit the repository');
+        expect(provider.duplicateTick, before + 1);
+      },
+    );
 
     test('passes deviceLabel and shopEmployeeId to the repository', () async {
       repo.recordScanHandler =
@@ -180,7 +238,7 @@ void main() {
           deviceLabel: 'Emp Device',
           shopEmployeeId: null,
         );
-        repo.showHandler = (uuid) async => Right(makeSession(uuid: uuid));
+        repo.showHandler = (uuid) async => Right(SessionWithScans(session: makeSession(uuid: uuid)));
         await employeeProvider.join('uuid-1');
 
         repo.recordScanHandler =
@@ -225,7 +283,7 @@ void main() {
 
   group('complete', () {
     test('updates the session with the completed payload', () async {
-      repo.showHandler = (uuid) async => Right(makeSession(uuid: uuid));
+      repo.showHandler = (uuid) async => Right(SessionWithScans(session: makeSession(uuid: uuid)));
       await provider.join('uuid-1');
 
       repo.completeHandler =
@@ -245,9 +303,11 @@ void main() {
 
   group('realtime', () {
     setUp(() async {
-      repo.showHandler =
-          (uuid) async =>
-              Right(makeSession(uuid: uuid, channel: 'private-shop-audit.17'));
+      repo.showHandler = (uuid) async => Right(
+        SessionWithScans(
+          session: makeSession(uuid: uuid, channel: 'private-shop-audit.17'),
+        ),
+      );
       await provider.join('uuid-1');
     });
 
@@ -333,7 +393,7 @@ void main() {
 
   group('feed buffer', () {
     test('caps at 20 newest entries (mix of local + realtime)', () async {
-      repo.showHandler = (uuid) async => Right(makeSession(uuid: uuid));
+      repo.showHandler = (uuid) async => Right(SessionWithScans(session: makeSession(uuid: uuid)));
       await provider.join('uuid-1');
       provider.subscribe();
 

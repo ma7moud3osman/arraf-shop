@@ -38,18 +38,33 @@ class HomePage extends StatelessWidget {
           ),
           IconButton(
             tooltip: 'home.sign_out'.tr(),
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedLogout01,
-              color: colorScheme.onSurface,
-              size: 22.sp,
-            ),
-            onPressed: () {
-              if (isEmployee) {
-                employeeAuth.logout(context: context);
-              } else {
-                session.logout();
-              }
-            },
+            icon:
+                (isEmployee ? employeeAuth.isLoggingOut : session.isLoggingOut)
+                    ? SizedBox(
+                      width: 22.sp,
+                      height: 22.sp,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(
+                          colorScheme.onSurface,
+                        ),
+                      ),
+                    )
+                    : HugeIcon(
+                      icon: HugeIcons.strokeRoundedLogout01,
+                      color: colorScheme.onSurface,
+                      size: 22.sp,
+                    ),
+            onPressed:
+                (isEmployee ? employeeAuth.isLoggingOut : session.isLoggingOut)
+                    ? null
+                    : () {
+                      if (isEmployee) {
+                        employeeAuth.logout(context: context);
+                      } else {
+                        session.logout();
+                      }
+                    },
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
 
 import '../../../../shared/enums/app_status.dart';
@@ -38,6 +39,7 @@ class AuditSessionScreen extends StatefulWidget {
 class _AuditSessionScreenState extends State<AuditSessionScreen> {
   int _lastScanId = 0;
   AppStatus _lastScanStatus = AppStatus.initial;
+  int _lastDuplicateTick = 0;
   AuditStatus? _observedStatus;
   bool _completionHandled = false;
   AuditSessionProvider? _provider;
@@ -101,6 +103,16 @@ class _AuditSessionScreenState extends State<AuditSessionScreen> {
     }
   }
 
+  void _reactToDuplicate(AuditSessionProvider provider) {
+    if (provider.duplicateTick == _lastDuplicateTick) return;
+    _lastDuplicateTick = provider.duplicateTick;
+    showToast(
+      context,
+      message: 'audits.scan.duplicate'.tr(),
+      status: 'warning',
+    );
+  }
+
   void _reactToNewScan(AuditSessionProvider provider) {
     final feed = provider.feed;
     if (feed.isEmpty) return;
@@ -148,6 +160,7 @@ class _AuditSessionScreenState extends State<AuditSessionScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _reactToScanStatus(provider);
+      _reactToDuplicate(provider);
       _reactToNewScan(provider);
       _reactToCompletion(provider);
     });
@@ -213,6 +226,9 @@ class _Body extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final completedAt = session.completedAt as DateTime?;
+    final isCompleted = session.status == AuditStatus.completed;
+
     return Column(
       children: [
         Expanded(
@@ -223,6 +239,8 @@ class _Body extends StatelessWidget {
           ),
         ),
         AuditProgressCard(session: session),
+        if (isCompleted && completedAt != null)
+          _CompletedBanner(completedAt: completedAt),
         const Divider(height: 1),
         Expanded(
           flex: 5,
@@ -246,6 +264,43 @@ class _Body extends StatelessWidget {
                   ),
         ),
       ],
+    );
+  }
+}
+
+class _CompletedBanner extends StatelessWidget {
+  const _CompletedBanner({required this.completedAt});
+
+  final DateTime completedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final formatted = intl.DateFormat.yMMMd(
+      context.locale.toLanguageTag(),
+    ).add_jm().format(completedAt.toLocal());
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: cs.secondaryContainer,
+      child: Row(
+        children: [
+          Icon(
+            Icons.check_circle_rounded,
+            size: 18,
+            color: cs.onSecondaryContainer,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'audits.session.completed_at'.tr(namedArgs: {'at': formatted}),
+              style: tt.bodySmall?.copyWith(color: cs.onSecondaryContainer),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

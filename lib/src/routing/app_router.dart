@@ -14,6 +14,7 @@ import 'package:arraf_shop/src/features/audits/domain/entities/audit_status.dart
 import 'package:arraf_shop/src/features/audits/domain/realtime/audit_realtime.dart';
 import 'package:arraf_shop/src/features/audits/domain/repositories/audit_repository.dart';
 import 'package:arraf_shop/src/features/audits/presentation/providers/audit_session_provider.dart';
+import 'package:arraf_shop/src/features/audits/presentation/providers/audits_list_provider.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audit_session_screen.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audit_summary_screen.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audits_list_screen.dart';
@@ -149,7 +150,7 @@ final GoRouter appRouter = GoRouter(
       builder:
           (context, state) => AuditsListScreen(
             isOwner: context.read<SessionProvider>().isAuthenticated,
-            onOpen: (session) {
+            onOpen: (session) async {
               // Completed sessions go straight to the summary; in-progress
               // sessions go to the live scanner. Using push keeps the list
               // screen in the stack so the back button returns there.
@@ -157,7 +158,13 @@ final GoRouter appRouter = GoRouter(
                   session.status == AuditStatus.completed
                       ? AppRoutes.auditSummary(session.uuid)
                       : AppRoutes.auditSession(session.uuid);
-              context.push(target);
+              await context.push(target);
+              // On return, refresh so scanned counts/progress reflect work
+              // done inside the session (including updates from other
+              // devices broadcasted via the session screen).
+              if (context.mounted) {
+                await context.read<AuditsListProvider>().refresh();
+              }
             },
           ),
       routes: [

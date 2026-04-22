@@ -62,8 +62,10 @@ class StateWrapper extends StatelessWidget {
         // ── Audits ─────────────────────────────────────────────────────
         ChangeNotifierProvider(
           create:
-              (ctx) =>
-                  AuditsListProvider(repository: ctx.read<AuditRepository>()),
+              (ctx) => AuditsListProvider(
+                repository: ctx.read<AuditRepository>(),
+                realtime: ctx.read<AuditRealtime>(),
+              ),
         ),
 
         // ── Attendance (employee-only) ─────────────────────────────────

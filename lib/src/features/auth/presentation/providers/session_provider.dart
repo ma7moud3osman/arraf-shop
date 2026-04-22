@@ -11,8 +11,8 @@ class SessionProvider extends ChangeNotifier {
   SessionProvider({
     required AuthRepository repository,
     SecureStorageService? storage,
-  })  : _repository = repository,
-        _storage = storage ?? SecureStorageService.instance {
+  }) : _repository = repository,
+       _storage = storage ?? SecureStorageService.instance {
     _init();
   }
 
@@ -22,10 +22,12 @@ class SessionProvider extends ChangeNotifier {
 
   SessionStatus _status = SessionStatus.unknown;
   AppUser? _user;
+  bool _loggingOut = false;
 
   SessionStatus get status => _status;
   AppUser? get user => _user;
   bool get isAuthenticated => _status == SessionStatus.authenticated;
+  bool get isLoggingOut => _loggingOut;
 
   Future<void> _init() async {
     // If the saved auth mode is `employee`, `/profile` will 401 because it
@@ -73,10 +75,17 @@ class SessionProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _repository.logout();
-    _user = null;
-    _status = SessionStatus.unauthenticated;
+    if (_loggingOut) return;
+    _loggingOut = true;
     notifyListeners();
+    try {
+      await _repository.logout();
+      _user = null;
+      _status = SessionStatus.unauthenticated;
+    } finally {
+      _loggingOut = false;
+      notifyListeners();
+    }
   }
 
   @override

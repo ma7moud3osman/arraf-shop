@@ -15,7 +15,6 @@ dependencies:
   go_router: ^17.1.0
 
   # Networking
-  internet_connection_checker_plus: ^2.9.1+2
   dio: ^5.9.2
 
   # State Management
@@ -35,6 +34,9 @@ dependencies:
 
   # Icons
   hugeicons: ^1.1.5
+
+  # i18n / formatting
+  intl: ^0.20.2
 
   # Shimmer / Skeleton
   skeletonizer: ^2.1.3

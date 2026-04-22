@@ -111,7 +111,11 @@
       "load_failed": "تعذر تحميل عمليات الجرد.",
       "empty_title": "لا توجد عمليات جرد بعد",
       "empty_subtitle": "ابدأ عملية جرد جديدة لحصر المخزون.",
-      "progress_counts": "{scanned} / {expected} صنف"
+      "progress_counts": "{scanned} / {expected} صنف",
+      "new_dialog_title": "بدء جرد جديد",
+      "title_field_label": "العنوان (اختياري)",
+      "title_field_hint": "مثال: {example}",
+      "start": "بدء"
     },
     "session": {
       "title": "جلسة الجرد",
@@ -121,8 +125,9 @@
       "complete_failed": "تعذر إنهاء الجلسة.",
       "scan_failed": "تعذر تسجيل المسح.",
       "progress_title": "عدد الممسوح",
-      "weight_counts": "الوزن: {scanned} / {expected}",
-      "feed_empty": "سيظهر المسح هنا."
+      "weight_title": "الوزن",
+      "feed_empty": "سيظهر المسح هنا.",
+      "completed_at": "اكتمل {at}"
     },
     "summary": {
       "title": "ملخص الجرد",
@@ -191,8 +196,17 @@
       "location_services_off": "فعّل خدمات الموقع لتسجيل الحضور.",
       "permission_denied": "اسمح بالوصول للموقع لتسجيل الحضور.",
       "permission_permanent": "الموقع محظور — فعّله من الإعدادات.",
-      "fix_timeout": "تعذّر الحصول على موقعك. حاول قرب النافذة أو في الخارج."
+      "fix_timeout": "تعذّر الحصول على موقعك. حاول قرب النافذة أو في الخارج.",
+      "settings_dialog_title": "يلزم تفعيل الموقع",
+      "open_settings": "فتح الإعدادات"
     }
+  },
+  "common": {
+    "cancel": "إلغاء"
+  },
+  "units": {
+    "g": "جم",
+    "kg": "كجم"
   },
   "payroll": {
     "title": "قسائم الراتب",

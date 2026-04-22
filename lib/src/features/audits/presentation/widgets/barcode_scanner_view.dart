@@ -9,10 +9,13 @@ import 'package:permission_handler/permission_handler.dart';
 ///
 /// Renders a live camera preview with a centred scan line and corner
 /// brackets, exposes torch + camera-switch controls, and debounces
-/// duplicate scans of the same barcode within an 800 ms window.
+/// detections so holding the camera on one item emits at most one
+/// forward per [sameBarcodeWindow]. A short [cooldownWindow] also
+/// separates two distinct barcodes so same-frame bursts can't race.
 ///
-/// The app-level dedupe still catches network dupes; this only prevents
-/// rapid-fire double-fires from the hardware.
+/// Every emitted forward is left to the host — including repeats — so
+/// the provider can decide whether to send to the server or toast a
+/// "duplicate" locally.
 class BarcodeScannerView extends StatefulWidget {
   const BarcodeScannerView({
     super.key,
@@ -26,7 +29,10 @@ class BarcodeScannerView extends StatefulWidget {
   final bool paused;
 
   @visibleForTesting
-  static const Duration debounceWindow = Duration(milliseconds: 800);
+  static const Duration cooldownWindow = Duration(milliseconds: 400);
+
+  @visibleForTesting
+  static const Duration sameBarcodeWindow = Duration(milliseconds: 1500);
 
   @override
   State<BarcodeScannerView> createState() => BarcodeScannerViewState();
@@ -37,7 +43,8 @@ class BarcodeScannerViewState extends State<BarcodeScannerView> {
   _PermissionState _permission = _PermissionState.checking;
 
   String? _lastBarcode;
-  DateTime? _lastScanAt;
+  DateTime? _lastBarcodeAt;
+  DateTime? _lastForwardedAt;
 
   @override
   void initState() {
@@ -102,14 +109,28 @@ class BarcodeScannerViewState extends State<BarcodeScannerView> {
 
   void _handleDetection(String barcode) {
     final now = DateTime.now();
-    final lastAt = _lastScanAt;
+
+    // Per-barcode debounce: the same code in view must wait
+    // [sameBarcodeWindow] before it can fire again. This lets the host
+    // show a "duplicate" toast on re-scan without flooding.
+    final lastBarcodeAt = _lastBarcodeAt;
     if (_lastBarcode == barcode &&
-        lastAt != null &&
-        now.difference(lastAt) < BarcodeScannerView.debounceWindow) {
+        lastBarcodeAt != null &&
+        now.difference(lastBarcodeAt) < BarcodeScannerView.sameBarcodeWindow) {
       return;
     }
+
+    // Short global cooldown between *any* two forwards so a burst of
+    // distinct detections on the same camera frame can't race.
+    final lastForwarded = _lastForwardedAt;
+    if (lastForwarded != null &&
+        now.difference(lastForwarded) < BarcodeScannerView.cooldownWindow) {
+      return;
+    }
+
     _lastBarcode = barcode;
-    _lastScanAt = now;
+    _lastBarcodeAt = now;
+    _lastForwardedAt = now;
     widget.onBarcode(barcode);
   }
 

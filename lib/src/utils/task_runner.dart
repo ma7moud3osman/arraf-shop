@@ -5,30 +5,11 @@ import '../imports/core_imports.dart';
 /// A reusable generic function to handle potential exceptions in async tasks
 /// and map them to the [Either] type matching [FutureEither<T>].
 ///
-/// If [requiresNetwork] is `true` and [isNetworkAvailable] returns `false`,
-/// the [action] will not be executed and a [NetworkFailure] will be returned.
-FutureEither<T> runTask<T>(
-  Future<T> Function() action, {
-  bool requiresNetwork = false,
-}) async {
-  if (requiresNetwork) {
-    final hasNetwork = await InternetConnectionService().hasConnection();
-
-    if (!hasNetwork) {
-      AppLogger.warning('Network unavailable for task');
-      showGlobalToast(
-        message:
-            'No internet connection. Please check your connection and try again.',
-        status: 'warning',
-      );
-      return left(
-        const NetworkFailure(
-          'No internet connection. Please check your connection and try again.',
-        ),
-      );
-    }
-  }
-
+/// Network-related failures (connection refused, DNS failure, timeouts) are
+/// mapped to a user-facing message by [AppErrorHandler.format], so callers
+/// don't need to pre-flight a connectivity check — the request itself is
+/// the source of truth.
+FutureEither<T> runTask<T>(Future<T> Function() action) async {
   try {
     final result = await action();
     return right(result);

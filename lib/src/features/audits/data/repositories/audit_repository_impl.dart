@@ -51,10 +51,19 @@ class AuditRepositoryImpl implements AuditRepository {
   }
 
   @override
-  FutureEither<AuditSession> show(String uuid) {
+  FutureEither<SessionWithScans> show(String uuid) {
     return _run(() async {
       final response = await _dio.get<dynamic>('$_basePath/$uuid');
-      return AuditSessionModel.fromJson(_unwrapData(response.data));
+      final data = _unwrapData(response.data);
+      final rawScans = (data['recent_scans'] as List?) ?? const [];
+      final scans = rawScans
+          .whereType<Map<String, dynamic>>()
+          .map(AuditScanModel.fromJson)
+          .toList(growable: false);
+      return SessionWithScans(
+        session: AuditSessionModel.fromJson(data),
+        recentScans: scans,
+      );
     });
   }
 
@@ -135,15 +144,21 @@ class AuditRepositoryImpl implements AuditRepository {
 
   /// Wraps an async block in try/catch and returns [FutureEither<T>].
   ///
-  /// Mirrors the semantics of `runTask` (see lib/src/utils/task_runner.dart)
-  /// without invoking the global `InternetConnectionService` singleton — Dio
-  /// surfaces network errors naturally as [DioException] which we map to a
-  /// [Failure] here. Tests can therefore drive the repo deterministically.
+  /// Mirrors the semantics of `runTask` (see lib/src/utils/task_runner.dart);
+  /// Dio surfaces network errors naturally as [DioException] which we map to
+  /// a [Failure] here. Tests can therefore drive the repo deterministically.
   FutureEither<T> _run<T>(Future<T> Function() action) async {
     try {
       return right(await action());
     } catch (error, stackTrace) {
-      AppLogger.error('Audit repo task failed: $error', error, stackTrace);
+      // 409 is an expected "barcode already scanned" signal that higher
+      // layers surface as a duplicate toast — logging it at ERROR with a
+      // stack trace every time is just noise.
+      if (error is DioException && error.response?.statusCode == 409) {
+        AppLogger.info('Audit repo: conflict ${error.requestOptions.path}');
+      } else {
+        AppLogger.error('Audit repo task failed: $error', error, stackTrace);
+      }
       return left(_failureFromError(error));
     }
   }

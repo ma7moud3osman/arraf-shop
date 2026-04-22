@@ -16,8 +16,8 @@ class EmployeeAuthProvider extends ChangeNotifier {
   EmployeeAuthProvider({
     required EmployeeAuthRepository repository,
     SecureStorageService? storage,
-  })  : _repository = repository,
-        _storage = storage ?? SecureStorageService.instance {
+  }) : _repository = repository,
+       _storage = storage ?? SecureStorageService.instance {
     _rehydrate();
   }
 
@@ -26,8 +26,10 @@ class EmployeeAuthProvider extends ChangeNotifier {
 
   ShopEmployee? _employee;
   bool _hydrating = true;
+  bool _loggingOut = false;
 
   ShopEmployee? get employee => _employee;
+  bool get isLoggingOut => _loggingOut;
 
   /// True only during the initial `me()` call on cold start — gives the
   /// auth-redirect guard a chance to not bounce the user to onboarding
@@ -71,20 +73,27 @@ class EmployeeAuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout({BuildContext? context}) async {
-    final result = await _repository.logout();
-    _employee = null;
+    if (_loggingOut) return;
+    _loggingOut = true;
     notifyListeners();
-    result.fold(
-      (failure) {
-        if (context != null && context.mounted) {
-          showToast(context, message: failure.message, status: 'error');
-        }
-      },
-      (_) {
-        if (context != null && context.mounted) {
-          context.go(AppRoutes.login);
-        }
-      },
-    );
+    try {
+      final result = await _repository.logout();
+      _employee = null;
+      result.fold(
+        (failure) {
+          if (context != null && context.mounted) {
+            showToast(context, message: failure.message, status: 'error');
+          }
+        },
+        (_) {
+          if (context != null && context.mounted) {
+            context.go(AppRoutes.login);
+          }
+        },
+      );
+    } finally {
+      _loggingOut = false;
+      notifyListeners();
+    }
   }
 }

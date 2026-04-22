@@ -12,6 +12,16 @@ class ScanResponse {
   const ScanResponse({required this.scan, required this.session});
 }
 
+class SessionWithScans {
+  final AuditSession session;
+  final List<AuditScan> recentScans;
+
+  const SessionWithScans({
+    required this.session,
+    this.recentScans = const [],
+  });
+}
+
 class Paginated<T> {
   final List<T> items;
   final int currentPage;
@@ -35,7 +45,7 @@ abstract class AuditRepository {
 
   FutureEither<AuditSession> start({String? notes});
 
-  FutureEither<AuditSession> show(String uuid);
+  FutureEither<SessionWithScans> show(String uuid);
 
   /// Records a scan against an in-progress session.
   ///

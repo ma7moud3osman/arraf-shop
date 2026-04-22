@@ -1,5 +1,4 @@
 export 'package:fpdart/fpdart.dart' hide State;
-export 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 export 'package:flutter_screenutil/flutter_screenutil.dart';
 export 'package:equatable/equatable.dart';
 export 'package:provider/provider.dart' hide Dispose;

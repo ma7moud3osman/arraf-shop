@@ -18,7 +18,7 @@ class VersionUpdateService {
         appleId: appleId,
         playStoreId: playStoreId,
       );
-    }, requiresNetwork: true);
+    });
   }
 
   /// High-level method to check for updates and show the dialog automatically if available.
@@ -48,7 +48,7 @@ class VersionUpdateService {
           );
         }
       }
-    }, requiresNetwork: true);
+    });
   }
 
   /// Display a platform-specific update dialog.

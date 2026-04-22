@@ -85,11 +85,13 @@ void main() {
         FakeAuditRepository()
           ..showHandler =
               (uuid) async => Right(
-                makeSession(
-                  uuid: uuid,
-                  scannedCount: 0,
-                  scannedWeightGrams: 0,
-                  progressPercent: 0,
+                SessionWithScans(
+                  session: makeSession(
+                    uuid: uuid,
+                    scannedCount: 0,
+                    scannedWeightGrams: 0,
+                    progressPercent: 0,
+                  ),
                 ),
               );
     final realtime = FakeAuditRealtime();

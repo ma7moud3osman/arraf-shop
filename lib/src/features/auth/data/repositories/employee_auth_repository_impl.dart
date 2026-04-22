@@ -25,7 +25,7 @@ class EmployeeAuthRepositoryImpl implements EmployeeAuthRepository {
       final body = response.data as Map<String, dynamic>;
       final data = (body['data'] as Map<String, dynamic>?) ?? body;
       return ShopEmployee.fromJson(Map<String, dynamic>.from(data));
-    }, requiresNetwork: true);
+    });
   }
 
   @override
@@ -38,6 +38,6 @@ class EmployeeAuthRepositoryImpl implements EmployeeAuthRepository {
         // token on the device is worse than a best-effort sign-out.
         await _storage.clearActiveToken();
       }
-    }, requiresNetwork: true);
+    });
   }
 }

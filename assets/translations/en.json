@@ -111,7 +111,11 @@
       "load_failed": "Could not load audits.",
       "empty_title": "No audits yet",
       "empty_subtitle": "Start a new audit to begin counting stock.",
-      "progress_counts": "{scanned} / {expected} items"
+      "progress_counts": "{scanned} / {expected} items",
+      "new_dialog_title": "Start new audit",
+      "title_field_label": "Title (optional)",
+      "title_field_hint": "e.g. {example}",
+      "start": "Start"
     },
     "session": {
       "title": "Audit session",
@@ -121,8 +125,9 @@
       "complete_failed": "Could not complete session.",
       "scan_failed": "Could not record scan.",
       "progress_title": "Scanned",
-      "weight_counts": "Weight: {scanned} / {expected}",
-      "feed_empty": "Scans will appear here."
+      "weight_title": "Weight",
+      "feed_empty": "Scans will appear here.",
+      "completed_at": "Completed {at}"
     },
     "summary": {
       "title": "Audit summary",
@@ -191,8 +196,17 @@
       "location_services_off": "Turn on Location Services to check in.",
       "permission_denied": "Allow location access to check in.",
       "permission_permanent": "Location is blocked — enable it in Settings.",
-      "fix_timeout": "Could not get your location. Try moving outside or near a window."
+      "fix_timeout": "Could not get your location. Try moving outside or near a window.",
+      "settings_dialog_title": "Location needed",
+      "open_settings": "Open settings"
     }
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
+  "units": {
+    "g": "g",
+    "kg": "kg"
   },
   "payroll": {
     "title": "Payslips",

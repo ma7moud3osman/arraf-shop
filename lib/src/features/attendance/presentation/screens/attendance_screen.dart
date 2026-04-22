@@ -45,11 +45,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       );
       context.read<AttendanceHistoryProvider>().load();
     } else {
-      showToast(
-        context,
-        message:
-            provider.errorMessage ?? 'attendance.toast.check_in_failed'.tr(),
-        status: 'error',
+      await _handleLocationFailure(
+        provider,
+        fallbackKey: 'attendance.toast.check_in_failed',
       );
     }
   }
@@ -66,13 +64,53 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       );
       context.read<AttendanceHistoryProvider>().load();
     } else {
-      showToast(
-        context,
-        message:
-            provider.errorMessage ?? 'attendance.toast.check_out_failed'.tr(),
-        status: 'error',
+      await _handleLocationFailure(
+        provider,
+        fallbackKey: 'attendance.toast.check_out_failed',
       );
     }
+  }
+
+  Future<void> _handleLocationFailure(
+    AttendanceProvider provider, {
+    required String fallbackKey,
+  }) async {
+    final message = provider.errorMessage ?? fallbackKey.tr();
+    final kind = provider.locationError;
+
+    // Services off → offer to open system Location Settings.
+    // Permanently denied → offer to open App Settings (where the user can
+    // re-grant the permission). Other cases are handled by a plain toast.
+    if (kind == LocationErrorKind.servicesOff ||
+        kind == LocationErrorKind.permissionPermanent) {
+      final openSettings = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('attendance.errors.settings_dialog_title'.tr()),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text('common.cancel'.tr()),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text('attendance.errors.open_settings'.tr()),
+            ),
+          ],
+        ),
+      );
+      if (openSettings ?? false) {
+        if (kind == LocationErrorKind.servicesOff) {
+          await provider.openLocationSettings();
+        } else {
+          await provider.openAppSettings();
+        }
+      }
+      return;
+    }
+
+    showToast(context, message: message, status: 'error');
   }
 
   void _openDaySheet(DateTime day, AttendanceRecord? record) {
