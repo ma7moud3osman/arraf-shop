@@ -13,10 +13,7 @@ build/
 doc/api/
 coverage/
 
-# Environment & secrets
-.env
-.env.*.local
-.env.local
+ 
 
 # IDEs
 .idea/

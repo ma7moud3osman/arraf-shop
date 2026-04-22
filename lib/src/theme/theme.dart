@@ -264,8 +264,16 @@ ThemeData _buildTheme(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       side: BorderSide(color: colorScheme.outlineVariant),
       backgroundColor: colorScheme.surfaceContainerLow,
+      selectedColor: colorScheme.secondaryContainer,
+      secondarySelectedColor: colorScheme.secondaryContainer,
+      checkmarkColor: colorScheme.onSecondaryContainer,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      labelStyle: textTheme.labelMedium,
+      labelStyle: textTheme.labelMedium?.copyWith(
+        color: colorScheme.onSurface,
+      ),
+      secondaryLabelStyle: textTheme.labelMedium?.copyWith(
+        color: colorScheme.onSecondaryContainer,
+      ),
     ),
 
     // List Tile Theme

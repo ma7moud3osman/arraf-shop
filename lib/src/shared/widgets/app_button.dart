@@ -47,9 +47,9 @@ class AppButton extends StatelessWidget {
     final isDisabled = onPressed == null || isLoading;
 
     final buttonHeight = switch (height) {
-      ButtonSize.small => 36.h,
-      ButtonSize.medium => 48.h,
-      ButtonSize.large => 56.h,
+      ButtonSize.small => 34.h,
+      ButtonSize.medium => 40.h,
+      ButtonSize.large => 48.h,
     };
 
     final buttonWidth = switch (width) {

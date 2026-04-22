@@ -31,12 +31,12 @@ class AppErrorWidget extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            HugeIcon(icon: icon, size: 56, color: cs.error),
-            const SizedBox(height: 16),
+            HugeIcon(icon: icon, size: 36, color: cs.error),
+            SizedBox(height: 8.h),
             Text(
               title,
               style: tt.titleMedium?.copyWith(
@@ -46,7 +46,7 @@ class AppErrorWidget extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             if (message != null) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: 8.h),
               Text(
                 message!,
                 style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
@@ -54,10 +54,11 @@ class AppErrorWidget extends StatelessWidget {
               ),
             ],
             if (onRetry != null) ...[
-              const SizedBox(height: 24),
+              SizedBox(height: 12.h),
               AppButton(
                 label: 'Try Again',
                 onPressed: onRetry,
+                height: ButtonSize.small,
                 variant: ButtonVariant.outline,
               ),
             ],
