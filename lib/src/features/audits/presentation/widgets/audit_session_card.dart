@@ -19,10 +19,13 @@ class AuditSessionCard extends StatelessWidget {
   final AuditSession session;
   final VoidCallback onTap;
 
+  static String? _localeTag(BuildContext context) =>
+      Localizations.maybeLocaleOf(context)?.toLanguageTag();
+
   static String _formatStartedAt(BuildContext context, DateTime at) {
-    return intl.DateFormat.yMMMd(
-      context.locale.toLanguageTag(),
-    ).add_jm().format(at.toLocal());
+    return intl.DateFormat.yMMMd(_localeTag(context))
+        .add_jm()
+        .format(at.toLocal());
   }
 
   static String _resolveTitle(BuildContext context, AuditSession session) {
@@ -30,9 +33,8 @@ class AuditSessionCard extends StatelessWidget {
     if (notes != null && notes.isNotEmpty) return notes;
     final startedAt = session.startedAt;
     if (startedAt == null) return 'audits.list.untitled'.tr();
-    final date = intl.DateFormat.yMMMd(
-      context.locale.toLanguageTag(),
-    ).format(startedAt.toLocal());
+    final date =
+        intl.DateFormat.yMMMd(_localeTag(context)).format(startedAt.toLocal());
     return '$date • ${formatWeight(session.expectedWeightGrams)}';
   }
 

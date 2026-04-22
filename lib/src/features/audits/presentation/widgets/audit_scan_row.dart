@@ -94,6 +94,7 @@ class AuditScanRow extends StatelessWidget {
   }
 
   static String _formatTime(BuildContext context, DateTime t) {
-    return intl.DateFormat.jms(context.locale.toLanguageTag()).format(t.toLocal());
+    final locale = Localizations.maybeLocaleOf(context)?.toLanguageTag();
+    return intl.DateFormat.jms(locale).format(t.toLocal());
   }
 }

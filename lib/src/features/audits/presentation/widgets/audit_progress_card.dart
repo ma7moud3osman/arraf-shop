@@ -94,31 +94,38 @@ class AuditProgressCard extends StatelessWidget {
                 color: cs.onSurfaceVariant,
               ),
               const SizedBox(width: 6),
-              Text(
-                'audits.session.weight_title'.tr(),
-                style: tt.labelMedium?.copyWith(
-                  color: cs.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  'audits.session.weight_title'.tr(),
+                  style: tt.labelMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
-              Text.rich(
-                TextSpan(
-                  style: tt.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                  children: [
-                    TextSpan(text: formatWeight(session.scannedWeightGrams)),
-                    TextSpan(
-                      text:
-                          '  /  ${formatWeight(session.expectedWeightGrams)}',
-                      style: TextStyle(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text.rich(
+                  TextSpan(
+                    style: tt.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
-                  ],
+                    children: [
+                      TextSpan(text: formatWeight(session.scannedWeightGrams)),
+                      TextSpan(
+                        text:
+                            '  /  ${formatWeight(session.expectedWeightGrams)}',
+                        style: TextStyle(
+                          color: cs.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

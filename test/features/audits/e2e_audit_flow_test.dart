@@ -135,7 +135,10 @@ void main() {
         );
 
       // ── Wire providers ────────────────────────────────────────────────────
-      final listProvider = AuditsListProvider(repository: repository);
+      final listProvider = AuditsListProvider(
+        repository: repository,
+        realtime: realtime,
+      );
       final sessionProvider = AuditSessionProvider(
         repository: repository,
         realtime: realtime,
@@ -173,14 +176,16 @@ void main() {
       expect(sessionProvider.session?.scannedCount, 1);
 
       // ── 4. Scan duplicate (same barcode) ──────────────────────────────────
+      // The barcode is already in recordedBarcodes after the first scan, so
+      // the provider short-circuits locally — no second POST, no feed row,
+      // just a bump on duplicateTick for the toast.
+      final dupTickBefore = sessionProvider.duplicateTick;
       await sessionProvider.scan('7-VALID00');
       expect(sessionProvider.scanStatus, AppStatus.success);
-      // Both scans appear in the feed, newest (duplicate) first.
-      expect(sessionProvider.feed, hasLength(2));
-      expect(sessionProvider.feed.first.id, 1002);
-      expect(sessionProvider.feed.first.result, AuditScanResult.duplicate);
-      expect(sessionProvider.feed.last.id, 1001);
-      // Server held scanned_count at 1 for the duplicate.
+      expect(sessionProvider.feed, hasLength(1));
+      expect(sessionProvider.feed.single.id, 1001);
+      expect(sessionProvider.feed.single.result, AuditScanResult.valid);
+      expect(sessionProvider.duplicateTick, dupTickBefore + 1);
       expect(sessionProvider.session?.scannedCount, 1);
 
       // ── 5. Complete the session ───────────────────────────────────────────
@@ -190,21 +195,21 @@ void main() {
       expect(sessionProvider.session?.completedAt, isNotNull);
 
       // ── Final cross-checks ────────────────────────────────────────────────
+      // The duplicate scan is short-circuited locally — no second POST.
       expect(adapter.requestLog.map((r) => '${r.method} ${r.path}').toList(), [
         'POST shops/my/audits',
         'GET shops/my/audits/$uuid',
         'POST shops/my/audits/$uuid/scans',
-        'POST shops/my/audits/$uuid/scans',
         'POST shops/my/audits/$uuid/complete',
       ]);
 
-      // Owner-mode: shop_employee_id is forwarded on scan POSTs.
+      // Owner-mode: shop_employee_id is forwarded on the one scan POST.
       final scanBodies =
           adapter.requestLog
               .where((r) => r.method == 'POST' && r.path.endsWith('/scans'))
               .map((r) => r.body)
               .toList();
-      expect(scanBodies, hasLength(2));
+      expect(scanBodies, hasLength(1));
       for (final body in scanBodies) {
         expect(body['barcode'], '7-VALID00');
         expect(body['device_label'], 'iPad — Floor 1');

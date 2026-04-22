@@ -152,8 +152,9 @@ void main() {
 
         final result = await AuditRepositoryImpl(dio: dio).show('abc-uuid');
 
-        final session = _expectRight<AuditSession>(result);
-        expect(session.uuid, _sessionJson['uuid']);
+        final payload = _expectRight<SessionWithScans>(result);
+        expect(payload.session.uuid, _sessionJson['uuid']);
+        expect(payload.recentScans, isEmpty);
         expect(captured?.method, 'GET');
         expect(captured?.path, 'shops/my/audits/abc-uuid');
       });
