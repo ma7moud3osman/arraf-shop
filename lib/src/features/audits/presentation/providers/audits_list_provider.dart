@@ -196,10 +196,7 @@ class _SessionPatch {
     );
   }
 
-  static AuditSession synthesize(
-    AuditSessionEvent event,
-    AuditStatus status,
-  ) {
+  static AuditSession synthesize(AuditSessionEvent event, AuditStatus status) {
     return AuditSession(
       uuid: event.uuid,
       shopId: event.shopId,

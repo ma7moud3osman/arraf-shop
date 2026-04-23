@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:io' show HttpClient, Platform;
 
 import '../imports/core_imports.dart';
+import '../services/session_expired_handler.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class AppConfig {
   AppConfig._();
@@ -26,7 +29,9 @@ class AppConfig {
 
     dio.interceptors.add(_localeInterceptor());
     dio.interceptors.add(_authInterceptor());
-    dio.interceptors.add(_loggingInterceptor());
+    if (kDebugMode) {
+      dio.interceptors.add(_prettyLogger());
+    }
 
     _trustLocalDevHost(dio);
   }
@@ -91,13 +96,25 @@ class AppConfig {
         final isUnauthorized = e.response?.statusCode == 401;
         final alreadyRetried =
             e.requestOptions.extra['retriedAfter401'] == true;
+        final skipAuth = e.requestOptions.extra['skipAuth'] == true;
 
-        if (!isUnauthorized || alreadyRetried) {
+        // 401 on a skipAuth endpoint (login/register) is a legitimate
+        // "wrong credentials" response — surface it to the caller, don't
+        // treat it as a session-expired event.
+        if (!isUnauthorized || skipAuth) {
+          return handler.next(e);
+        }
+
+        if (alreadyRetried) {
+          // Second 401 after a token-less retry → the session really is
+          // dead. Wipe everything and route the user back to login with a
+          // toast so they know why.
+          unawaited(SessionExpiredHandler.handle());
           return handler.next(e);
         }
 
         // Stale token → drop it and retry once. If the second attempt still
-        // 401s, bubble up so the UI can route to login.
+        // 401s, the branch above fires the session-expired flow.
         await SecureStorageService.instance.clearActiveToken();
 
         final retryOptions = Options(
@@ -119,32 +136,24 @@ class AppConfig {
           );
           return handler.resolve(response);
         } on DioException catch (retryError) {
+          if (retryError.response?.statusCode == 401) {
+            unawaited(SessionExpiredHandler.handle());
+          }
           return handler.next(retryError);
         }
       },
     );
   }
 
-  static Interceptor _loggingInterceptor() {
-    return InterceptorsWrapper(
-      onRequest: (options, handler) {
-        AppLogger.info(
-          '🌐 [DIO] REQUEST[${options.method}] => PATH: ${options.path}',
-        );
-        return handler.next(options);
-      },
-      onResponse: (response, handler) {
-        AppLogger.info(
-          '✅ [DIO] RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}',
-        );
-        return handler.next(response);
-      },
-      onError: (DioException e, handler) {
-        AppLogger.error(
-          '❌ [DIO] ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}',
-        );
-        return handler.next(e);
-      },
+  static Interceptor _prettyLogger() {
+    return PrettyDioLogger(
+      requestHeader: true,
+      requestBody: true,
+      responseHeader: false,
+      responseBody: true,
+      error: true,
+      compact: true,
+      maxWidth: 120,
     );
   }
 

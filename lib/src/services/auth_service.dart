@@ -2,6 +2,7 @@ import 'dart:async';
 import '../utils/utils.dart';
 import '../config/app_config.dart';
 import 'secure_storage_service.dart';
+import 'storage_service.dart';
 import 'package:dio/dio.dart';
 
 class AuthService {
@@ -58,6 +59,22 @@ class AuthService {
         }
       }
 
+      // Cache the actor JSON under the matching SharedPreferences slot so
+      // the next cold start can restore the session without calling
+      // `/profile` or `/shop-employees/me`.
+      final prefs = StorageService.instance;
+      if (role == 'employee') {
+        final employee = data['employee'] as Map<String, dynamic>?;
+        if (employee != null) {
+          await prefs.setJson(StorageService.cachedEmployeeKey, employee);
+        }
+      } else {
+        final user = data['user'] as Map<String, dynamic>?;
+        if (user != null) {
+          await prefs.setJson(StorageService.cachedOwnerUserKey, user);
+        }
+      }
+
       return data;
     });
   }
@@ -90,6 +107,12 @@ class AuthService {
       if (token != null) {
         await _storage.writeOwnerToken(token);
       }
+      if (user != null) {
+        await StorageService.instance.setJson(
+          StorageService.cachedOwnerUserKey,
+          user,
+        );
+      }
 
       _authStateController.add(user);
       return user;
@@ -114,6 +137,8 @@ class AuthService {
         await _dio.post<dynamic>('sign-out');
       } finally {
         await _storage.clearActiveToken();
+        // Drop the cached owner user so the next cold start shows login.
+        await StorageService.instance.remove(StorageService.cachedOwnerUserKey);
         _authStateController.add(null);
       }
     });

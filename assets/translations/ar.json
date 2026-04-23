@@ -3,13 +3,24 @@
     "get_started": "ابدأ",
     "app_name": "عرّاف"
   },
+  "splash": {
+    "tagline": "ذهبٌ موثّق"
+  },
   "settings": {
     "title": "الإعدادات",
     "language": "اللغة",
     "theme": "المظهر",
     "theme_system": "افتراضي النظام",
     "theme_light": "فاتح",
-    "theme_dark": "داكن"
+    "theme_dark": "داكن",
+    "account": "الحساب",
+    "preferences": "التفضيلات",
+    "about": "عن التطبيق",
+    "app_version": "إصدار التطبيق",
+    "sign_out": "تسجيل الخروج",
+    "sign_out_confirm_title": "تسجيل الخروج؟",
+    "sign_out_confirm_body": "ستحتاج لتسجيل الدخول مجدداً للمتابعة.",
+    "sign_out_confirm_action": "تسجيل الخروج"
   },
   "onboarding": {
     "onboarding_title_1": "مخزونك\nتحت السيطرة",
@@ -29,7 +40,36 @@
     "audits_subtitle": "امسح المخزون، طابق الأعداد، وصدّر التقارير.",
     "sign_out": "تسجيل الخروج",
     "attendance_subtitle": "سجّل حضورك وشاهد سجل الأيام.",
-    "payslips_subtitle": "اعرض قسائم راتبك الشهرية وحمّلها."
+    "payslips_subtitle": "اعرض قسائم راتبك الشهرية وحمّلها.",
+    "employees_subtitle": "أدر فريقك وأكوادهم وأرقام PIN.",
+    "greeting_morning": "صباح الخير",
+    "greeting_afternoon": "مساء الخير",
+    "greeting_evening": "مساء الخير",
+    "role_owner": "المالك",
+    "role_employee": "موظف",
+    "quick_actions": "إجراءات سريعة",
+    "overview": "نظرة عامة",
+    "today": "اليوم"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "attendance": "الحضور",
+    "employees": "الموظفون",
+    "audits": "الجرد",
+    "settings": "الإعدادات"
+  },
+  "employees": {
+    "title": "الموظفون",
+    "search_hint": "ابحث بالاسم أو الكود",
+    "add": "إضافة موظف",
+    "total_count": "{count} إجمالاً",
+    "active_badge": "نشط",
+    "inactive_badge": "غير نشط",
+    "empty_title": "لا يوجد موظفون بعد",
+    "empty_subtitle": "سيظهر موظفو محلك هنا. أضف أول زميل للبدء.",
+    "coming_soon_title": "إدارة الموظفين",
+    "coming_soon_subtitle": "ستتمكن من إضافة الموظفين وتعديلهم وإيقافهم مباشرة من هنا. ترقّب — قريباً جداً.",
+    "load_failed": "تعذّر تحميل الموظفين."
   },
   "auth": {
     "log_in": "تسجيل الدخول",
@@ -78,7 +118,8 @@
       "role_employee": "موظف"
     },
     "forgot_password_mobile_subtitle": "أدخل رقم جوّالك لتلقي رمز استعادة كلمة المرور.",
-    "reset_code_sent": "تم إرسال رمز الاستعادة إلى جوّالك."
+    "reset_code_sent": "تم إرسال رمز الاستعادة إلى جوّالك.",
+    "session_expired": "انتهت صلاحية جلستك. يرجى تسجيل الدخول مجدداً."
   },
   "audits": {
     "scanner": {

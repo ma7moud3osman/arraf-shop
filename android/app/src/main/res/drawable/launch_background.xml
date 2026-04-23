@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!--
+    Legacy splash (pre-Android-12). Charcoal backdrop + centred wordmark
+    so the window-background flash before Flutter paints matches the
+    Flutter animated splash's initial frame.
+-->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
+    <item android:drawable="@color/splash_background" />
+    <item>
         <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+            android:src="@drawable/background"
+            android:gravity="center" />
+    </item>
 </layer-list>

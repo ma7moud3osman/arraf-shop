@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 
 import '../features/audits/domain/realtime/audit_realtime.dart';
 import '../utils/utils.dart';
 import 'auth_endpoint_signer.dart';
+import 'session_expired_handler.dart';
 
 /// Pusher-backed implementation of the [AuditRealtime] contract.
 ///
@@ -353,12 +355,29 @@ class PusherService implements AuditRealtime {
   ) async {
     try {
       return await _signer.sign(socketId: socketId, channelName: channelName);
+    } on DioException catch (error, stack) {
+      AppLogger.error('Broadcasting auth failed for $channelName', [
+        error,
+        stack,
+      ]);
+      // When the token was revoked from another device, the Sanctum
+      // `broadcasting/auth` call returns 401. Trigger the normal
+      // session-expired flow — it's idempotent so it's safe to call from
+      // the authorizer alongside any concurrent API 401.
+      if (error.response?.statusCode == 401) {
+        unawaited(SessionExpiredHandler.handle());
+      }
+      // Never rethrow — the native Pusher plugin force-casts the
+      // authorizer's result to `[String: Any]` and crashes the app on any
+      // Dart exception. Returning an empty well-shaped map lets Pusher
+      // fail the subscription gracefully (and we're logging out anyway).
+      return const <String, dynamic>{'auth': ''};
     } catch (error, stack) {
       AppLogger.error('Broadcasting auth failed for $channelName', [
         error,
         stack,
       ]);
-      rethrow;
+      return const <String, dynamic>{'auth': ''};
     }
   }
 

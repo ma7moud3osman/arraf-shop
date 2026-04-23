@@ -88,11 +88,7 @@ class AuditProgressCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(
-                Icons.scale_outlined,
-                size: 16,
-                color: cs.onSurfaceVariant,
-              ),
+              Icon(Icons.scale_outlined, size: 16, color: cs.onSurfaceVariant),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+ splash icon.
+
+    Just the wordmark bitmap — Android 12's windowSplashScreen API
+    centres this drawable inside the 288 dp canvas automatically. The
+    PNG is supplied at density-appropriate sizes (see drawable-*dpi/
+    background.png) so it renders at ~160 dp on every device, well
+    inside the 192 dp icon-visible area.
+-->
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/background"
+    android:gravity="center"
+    android:tileMode="disabled" />

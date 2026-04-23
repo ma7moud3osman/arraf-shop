@@ -25,10 +25,11 @@ class PayrollRepositoryImpl implements PayrollRepository {
       final body = response.data as Map<String, dynamic>;
       final raw = body['data'];
       final list = raw is List ? raw : <dynamic>[];
-      final payslips = list
-          .whereType<Map<dynamic, dynamic>>()
-          .map((m) => PayslipModel.fromJson(Map<String, dynamic>.from(m)))
-          .toList();
+      final payslips =
+          list
+              .whereType<Map<dynamic, dynamic>>()
+              .map((m) => PayslipModel.fromJson(Map<String, dynamic>.from(m)))
+              .toList();
       return right<Failure, List<Payslip>>(payslips);
     });
   }

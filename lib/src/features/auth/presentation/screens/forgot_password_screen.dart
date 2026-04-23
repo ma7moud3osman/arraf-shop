@@ -1,7 +1,6 @@
+import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
-
-import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -20,18 +19,30 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  void _handleForgotPassword() {
+  Future<void> _handleForgotPassword() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    context.read<AuthProvider>().forgotPassword(
-      context: context,
+    final error = await context.read<AuthProvider>().forgotPassword(
       mobile: _mobileController.text.trim(),
     );
+
+    if (!mounted) return;
+
+    if (error != null) {
+      showToast(context, message: error, status: 'error');
+      return;
+    }
+    showToast(
+      context,
+      message: 'auth.reset_code_sent'.tr(),
+      status: 'success',
+    );
+    context.go(AppRoutes.login);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.select((AuthProvider p) => p.isLoading);
+    final isLoading = context.select((AuthProvider p) => p.isSendingResetCode);
 
     final cs = context.theme.colorScheme;
     final tt = context.theme.textTheme;

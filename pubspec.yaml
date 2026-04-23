@@ -16,6 +16,7 @@ dependencies:
 
   # Networking
   dio: ^5.9.2
+  pretty_dio_logger: ^1.4.0
 
   # State Management
   fpdart: ^1.2.0
@@ -34,6 +35,9 @@ dependencies:
 
   # Icons
   hugeicons: ^1.1.5
+
+  # Typography — Cinzel for the splash wordmark
+  google_fonts: ^6.2.1
 
   # i18n / formatting
   intl: ^0.20.2
@@ -90,6 +94,47 @@ dev_dependencies:
   # Code Generation
   build_runner: ^2.12.2
   hive_ce_generator: ^1.11.1
+
+  # App-icon generation from custom artwork in assets/icons/.
+  # Run: `dart run tool/composite_app_icon.dart` to rebuild the flattened
+  # launcher tile (gold bg + white wordmark), then
+  # `dart run flutter_launcher_icons` to produce all platform variants.
+  flutter_launcher_icons: ^0.14.4
+  image: ^4.5.4
+
+# Native splash — the iOS LaunchImage / Android splash_screen drawable that
+# the OS shows *before* Flutter boots. Without this the user sees a blank
+# white screen between tapping the icon and the animated splash starting.
+# Run `dart run flutter_native_splash:create` after editing.
+flutter_native_splash:
+  # Charcoal matches the outer edge of the animated splash's radial
+  # backdrop so the handoff to the Flutter splash is seamless.
+  color: "#0B0B0E"
+  image: "assets/icons/arraf.png"
+  # Android 12+ uses a separate splash API with a forced circular mask and
+  # a sized icon. Keep the same colour + mark.
+  android_12:
+    color: "#0B0B0E"
+    image: "assets/icons/arraf.png"
+    icon_background_color: "#0B0B0E"
+  android: true
+  ios: true
+  web: false
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  # Full-bleed tile: white wordmark composited onto the theme's gold.
+  image_path: "assets/icons/icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  background_color_ios: "#F59E0B"
+  # Adaptive (Android 8+): gold plate behind the white wordmark so the mark
+  # reads crisply regardless of the launcher's mask shape and stays visually
+  # consistent with the splash background.
+  adaptive_icon_background: "#F59E0B"
+  adaptive_icon_foreground: "assets/icons/arraf.png"
+  adaptive_icon_monochrome: "assets/icons/arraf.png"
 
 flutter:
   uses-material-design: true

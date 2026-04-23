@@ -29,8 +29,7 @@ class AttendanceProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   LocationErrorKind? get locationError => _locationError;
 
-  Future<bool> openLocationSettings() =>
-      Geolocator.openLocationSettings();
+  Future<bool> openLocationSettings() => Geolocator.openLocationSettings();
   Future<bool> openAppSettings() => Geolocator.openAppSettings();
 
   bool get canCheckIn => _today?.hasCheckedIn != true;

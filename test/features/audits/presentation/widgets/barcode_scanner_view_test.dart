@@ -47,27 +47,24 @@ void main() {
       expect(scanned, ['7-A1B2C3D4']);
     });
 
-    testWidgets(
-      'debounces the same barcode within the sameBarcodeWindow',
-      (tester) async {
-        final scanned = <String>[];
-        final key = GlobalKey<BarcodeScannerViewState>();
+    testWidgets('debounces the same barcode within the sameBarcodeWindow', (
+      tester,
+    ) async {
+      final scanned = <String>[];
+      final key = GlobalKey<BarcodeScannerViewState>();
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: BarcodeScannerView(key: key, onBarcode: scanned.add),
-          ),
-        );
-        await tester.pump();
+      await tester.pumpWidget(
+        MaterialApp(home: BarcodeScannerView(key: key, onBarcode: scanned.add)),
+      );
+      await tester.pump();
 
-        final state = key.currentState!;
-        state.debugHandleScan('7-A1B2C3D4');
-        state.debugHandleScan('7-A1B2C3D4');
-        state.debugHandleScan('7-A1B2C3D4');
+      final state = key.currentState!;
+      state.debugHandleScan('7-A1B2C3D4');
+      state.debugHandleScan('7-A1B2C3D4');
+      state.debugHandleScan('7-A1B2C3D4');
 
-        expect(scanned, ['7-A1B2C3D4']);
-      },
-    );
+      expect(scanned, ['7-A1B2C3D4']);
+    });
 
     testWidgets(
       're-fires the same barcode once the sameBarcodeWindow elapses',
@@ -95,30 +92,27 @@ void main() {
       },
     );
 
-    testWidgets(
-      'forwards distinct barcodes once the cooldown elapses',
-      (tester) async {
-        final scanned = <String>[];
-        final key = GlobalKey<BarcodeScannerViewState>();
+    testWidgets('forwards distinct barcodes once the cooldown elapses', (
+      tester,
+    ) async {
+      final scanned = <String>[];
+      final key = GlobalKey<BarcodeScannerViewState>();
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: BarcodeScannerView(key: key, onBarcode: scanned.add),
-          ),
-        );
-        await tester.pump();
+      await tester.pumpWidget(
+        MaterialApp(home: BarcodeScannerView(key: key, onBarcode: scanned.add)),
+      );
+      await tester.pump();
 
-        key.currentState!.debugHandleScan('AAA');
-        await tester.runAsync(
-          () => Future<void>.delayed(
-            BarcodeScannerView.cooldownWindow + const Duration(milliseconds: 50),
-          ),
-        );
-        key.currentState!.debugHandleScan('BBB');
+      key.currentState!.debugHandleScan('AAA');
+      await tester.runAsync(
+        () => Future<void>.delayed(
+          BarcodeScannerView.cooldownWindow + const Duration(milliseconds: 50),
+        ),
+      );
+      key.currentState!.debugHandleScan('BBB');
 
-        expect(scanned, ['AAA', 'BBB']);
-      },
-    );
+      expect(scanned, ['AAA', 'BBB']);
+    });
 
     testWidgets('drops a second distinct barcode within the cooldown', (
       tester,

@@ -268,9 +268,7 @@ ThemeData _buildTheme(
       secondarySelectedColor: colorScheme.secondaryContainer,
       checkmarkColor: colorScheme.onSecondaryContainer,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      labelStyle: textTheme.labelMedium?.copyWith(
-        color: colorScheme.onSurface,
-      ),
+      labelStyle: textTheme.labelMedium?.copyWith(color: colorScheme.onSurface),
       secondaryLabelStyle: textTheme.labelMedium?.copyWith(
         color: colorScheme.onSecondaryContainer,
       ),
@@ -325,9 +323,12 @@ ThemeData _buildTheme(
       elevation: 0,
       backgroundColor: colorScheme.surface,
       titleTextStyle: textTheme.titleLarge?.copyWith(
+        color: colorScheme.onSurface,
         fontWeight: FontWeight.bold,
       ),
-      contentTextStyle: textTheme.bodyMedium,
+      contentTextStyle: textTheme.bodyMedium?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+      ),
     ),
 
     // Bottom Sheet Theme

@@ -1,15 +1,4 @@
-import 'package:arraf_shop/src/routing/app_routes.dart';
-import 'package:arraf_shop/src/routing/global_navigator.dart';
-import 'package:flutter/widgets.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-
-import 'package:arraf_shop/src/features/auth/presentation/providers/employee_auth_provider.dart';
-import 'package:arraf_shop/src/features/auth/presentation/providers/session_provider.dart';
-// import 'package:arraf_shop/src/features/auth/presentation/screens/employee_login_screen.dart';
-import 'package:arraf_shop/src/features/auth/presentation/screens/forgot_password_screen.dart';
-import 'package:arraf_shop/src/features/auth/presentation/screens/login_screen.dart';
-// import 'package:arraf_shop/src/features/auth/presentation/screens/signup_screen.dart';
+import 'package:arraf_shop/src/features/attendance/presentation/screens/attendance_screen.dart';
 import 'package:arraf_shop/src/features/audits/domain/entities/audit_status.dart';
 import 'package:arraf_shop/src/features/audits/domain/realtime/audit_realtime.dart';
 import 'package:arraf_shop/src/features/audits/domain/repositories/audit_repository.dart';
@@ -18,16 +7,28 @@ import 'package:arraf_shop/src/features/audits/presentation/providers/audits_lis
 import 'package:arraf_shop/src/features/audits/presentation/screens/audit_session_screen.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audit_summary_screen.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audits_list_screen.dart';
-import 'package:arraf_shop/src/features/attendance/presentation/screens/attendance_screen.dart';
+import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
+import 'package:arraf_shop/src/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:arraf_shop/src/features/auth/presentation/screens/login_screen.dart';
+import 'package:arraf_shop/src/features/employees/presentation/screens/employees_screen.dart';
 import 'package:arraf_shop/src/features/home/presentation/screens/home_page.dart';
 import 'package:arraf_shop/src/features/onboarding/presentation/screens/onboarding_page.dart';
 import 'package:arraf_shop/src/features/payroll/presentation/screens/payslips_screen.dart';
 import 'package:arraf_shop/src/features/settings/presentation/screens/settings_screen.dart';
+import 'package:arraf_shop/src/features/splash/presentation/screens/animated_splash_screen.dart';
+import 'package:arraf_shop/src/routing/app_routes.dart';
+import 'package:arraf_shop/src/routing/global_navigator.dart';
+import 'package:arraf_shop/src/services/storage_service.dart';
+import 'package:arraf_shop/src/shared/widgets/app_shell_scaffold.dart';
+import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 /// Route names used with `context.goNamed` / `pushNamed`. Centralized to keep
 /// the router file as the single source of truth.
 abstract final class AppRouteNames {
   AppRouteNames._();
+  static const splash = 'splash';
   static const onboarding = 'onboarding';
   static const login = 'login';
   static const employeeLogin = 'employeeLogin';
@@ -40,6 +41,7 @@ abstract final class AppRouteNames {
   static const settings = 'settings';
   static const attendance = 'attendance';
   static const payslips = 'payslips';
+  static const employees = 'employees';
 }
 
 /// Auth-gated paths. Anyone visiting these without a live session (owner
@@ -50,6 +52,7 @@ const Set<String> _authGatedPrefixes = {
   AppRoutes.settings,
   AppRoutes.attendance,
   AppRoutes.payslips,
+  AppRoutes.employees,
 };
 
 bool _isAuthGated(String location) {
@@ -58,44 +61,67 @@ bool _isAuthGated(String location) {
   );
 }
 
-/// Returns a redirect target, or `null` to let the navigation proceed.
-///
-/// Guard policy:
-///  * Owner session (SessionProvider.isAuthenticated) → allow everywhere.
-///  * Employee session (EmployeeAuthProvider.employee != null) → allow audits.
-///  * Neither → redirect any auth-gated path to /onboarding.
-///
-/// Auth state on cold-start is `unknown`; we don't redirect from /audits in
-/// that case so the SessionProvider's initial check has a chance to resolve.
 String? _authRedirect(BuildContext context, GoRouterState state) {
   final location = state.matchedLocation;
+
+  if (location == AppRoutes.onboarding &&
+      (StorageService.instance.getBool(onboardingCompletedStorageKey) ??
+          false)) {
+    return AppRoutes.login;
+  }
+
   if (!_isAuthGated(location)) return null;
 
-  final session = context.read<SessionProvider>();
-  if (session.status == SessionStatus.unknown) {
-    // Still resolving — let the page render, SessionListenerWrapper will
-    // kick the user out later if it turns out they're unauthenticated.
+  final session = context.read<AuthProvider>();
+  // Don't bounce while we're still resolving cold-start state — the
+  // provider flips to authenticated/unauthenticated the moment the
+  // cached actor is read, and the redirect runs again on notifyListeners.
+  if (session.isHydrating || session.status == SessionStatus.unknown) {
     return null;
   }
   if (session.isAuthenticated) return null;
 
-  final employeeAuth = context.read<EmployeeAuthProvider>();
-  if (employeeAuth.isHydrating) {
-    // Employee rehydrate is in flight (cold start with a saved employee
-    // token). Let the page render — the provider will notify once me()
-    // resolves and the redirect runs again.
-    return null;
-  }
-  if (employeeAuth.employee != null) return null;
-
-  return AppRoutes.onboarding;
+  return AppRoutes.login;
 }
+
+// Dedicated navigator keys for each shell branch so that go_router can
+// preserve per-tab stacks (e.g. audits list → audit session → summary
+// doesn't reset when switching tabs).
+final _homeNavKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final _attendanceNavKey = GlobalKey<NavigatorState>(debugLabel: 'attendance');
+final _employeesNavKey = GlobalKey<NavigatorState>(debugLabel: 'employees');
+final _auditsNavKey = GlobalKey<NavigatorState>(debugLabel: 'audits');
+final _settingsNavKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: AppRoutes.onboarding,
+  initialLocation: AppRoutes.splash,
   redirect: _authRedirect,
   routes: <RouteBase>[
+    // ── Outside the shell: splash, onboarding, auth ────────────────────
+    GoRoute(
+      path: AppRoutes.splash,
+      name: AppRouteNames.splash,
+      builder:
+          (context, state) => AnimatedSplashScreen(
+            onComplete: () {
+              final onboardingDone =
+                  StorageService.instance.getBool(
+                    onboardingCompletedStorageKey,
+                  ) ??
+                  false;
+              final session = context.read<AuthProvider>();
+
+              if (session.isAuthenticated) {
+                appRouter.go(AppRoutes.home);
+              } else if (onboardingDone) {
+                appRouter.go(AppRoutes.login);
+              } else {
+                appRouter.go(AppRoutes.onboarding);
+              }
+            },
+          ),
+    ),
     GoRoute(
       path: AppRoutes.onboarding,
       name: AppRouteNames.onboarding,
@@ -106,83 +132,115 @@ final GoRouter appRouter = GoRouter(
       name: AppRouteNames.login,
       builder: (context, state) => const LoginScreen(),
     ),
-    // Employee login disabled — mobile now uses the unified `/api/login`
-    // endpoint via LoginScreen for both owners and employees.
-    // Signup disabled — mobile app is sign-in only for existing accounts.
-    // Re-register this GoRoute to restore.
-    // GoRoute(
-    //   path: AppRoutes.signup,
-    //   name: AppRouteNames.signup,
-    //   builder: (context, state) => const SignupScreen(),
-    // ),
     GoRoute(
       path: AppRoutes.forgotPassword,
       name: AppRouteNames.forgotPassword,
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
-    GoRoute(
-      path: AppRoutes.home,
-      name: AppRouteNames.home,
-      builder: (context, state) => const HomePage(),
-    ),
-    GoRoute(
-      path: AppRoutes.settings,
-      name: AppRouteNames.settings,
-      builder: (context, state) => const SettingsScreen(),
-    ),
 
-    // ── Employee: attendance + payslips ──────────────────────────────
-    GoRoute(
-      path: AppRoutes.attendance,
-      name: AppRouteNames.attendance,
-      builder: (context, state) => const AttendanceScreen(),
-    ),
+    // ── Payslips: employee-only detail, lives outside the shell so the
+    // bottom bar is hidden while viewing the list ────────────────────
     GoRoute(
       path: AppRoutes.payslips,
       name: AppRouteNames.payslips,
+      parentNavigatorKey: rootNavigatorKey,
       builder: (context, state) => const PayslipsScreen(),
     ),
 
-    // ── Audits ────────────────────────────────────────────────────────
+    // ── Audit session + summary: push over the shell so the scanner
+    // gets a full-screen experience without the bottom nav ───────────
     GoRoute(
-      path: AppRoutes.audits,
-      name: AppRouteNames.audits,
-      builder:
-          (context, state) => AuditsListScreen(
-            isOwner: context.read<SessionProvider>().isAuthenticated,
-            onOpen: (session) async {
-              // Completed sessions go straight to the summary; in-progress
-              // sessions go to the live scanner. Using push keeps the list
-              // screen in the stack so the back button returns there.
-              final target =
-                  session.status == AuditStatus.completed
-                      ? AppRoutes.auditSummary(session.uuid)
-                      : AppRoutes.auditSession(session.uuid);
-              await context.push(target);
-              // On return, refresh so scanned counts/progress reflect work
-              // done inside the session (including updates from other
-              // devices broadcasted via the session screen).
-              if (context.mounted) {
-                await context.read<AuditsListProvider>().refresh();
-              }
-            },
-          ),
+      path: '${AppRoutes.audits}/:uuid',
+      name: AppRouteNames.auditSession,
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) {
+        final uuid = state.pathParameters['uuid']!;
+        return _AuditSessionRoute(uuid: uuid);
+      },
       routes: [
         GoRoute(
-          path: ':uuid',
-          name: AppRouteNames.auditSession,
+          path: 'summary',
+          name: AppRouteNames.auditSummary,
+          parentNavigatorKey: rootNavigatorKey,
           builder: (context, state) {
             final uuid = state.pathParameters['uuid']!;
-            return _AuditSessionRoute(uuid: uuid);
+            return AuditSummaryScreen(uuid: uuid);
           },
+        ),
+      ],
+    ),
+
+    // ── Bottom-nav shell with 5 branches (the nav bar filters which
+    // 4 are visible per role) ─────────────────────────────────────────
+    StatefulShellRoute.indexedStack(
+      builder:
+          (context, state, navShell) => AppShellScaffold(navShell: navShell),
+      branches: [
+        // 0 — Home
+        StatefulShellBranch(
+          navigatorKey: _homeNavKey,
           routes: [
             GoRoute(
-              path: 'summary',
-              name: AppRouteNames.auditSummary,
-              builder: (context, state) {
-                final uuid = state.pathParameters['uuid']!;
-                return AuditSummaryScreen(uuid: uuid);
-              },
+              path: AppRoutes.home,
+              name: AppRouteNames.home,
+              builder: (context, state) => const HomePage(),
+            ),
+          ],
+        ),
+        // 1 — Attendance (employee tab)
+        StatefulShellBranch(
+          navigatorKey: _attendanceNavKey,
+          routes: [
+            GoRoute(
+              path: AppRoutes.attendance,
+              name: AppRouteNames.attendance,
+              builder: (context, state) => const AttendanceScreen(),
+            ),
+          ],
+        ),
+        // 2 — Employees (admin tab)
+        StatefulShellBranch(
+          navigatorKey: _employeesNavKey,
+          routes: [
+            GoRoute(
+              path: AppRoutes.employees,
+              name: AppRouteNames.employees,
+              builder: (context, state) => const EmployeesScreen(),
+            ),
+          ],
+        ),
+        // 3 — Audits (list only; session/summary push over the shell)
+        StatefulShellBranch(
+          navigatorKey: _auditsNavKey,
+          routes: [
+            GoRoute(
+              path: AppRoutes.audits,
+              name: AppRouteNames.audits,
+              builder:
+                  (context, state) => AuditsListScreen(
+                    isOwner: context.read<AuthProvider>().isOwner,
+                    onOpen: (session) async {
+                      final target =
+                          session.status == AuditStatus.completed
+                              ? AppRoutes.auditSummary(session.uuid)
+                              : AppRoutes.auditSession(session.uuid);
+                      await context.push(target);
+                      if (context.mounted) {
+                        await context.read<AuditsListProvider>().refresh();
+                      }
+                    },
+                  ),
+            ),
+          ],
+        ),
+        // 4 — Settings
+        StatefulShellBranch(
+          navigatorKey: _settingsNavKey,
+          routes: [
+            GoRoute(
+              path: AppRoutes.settings,
+              name: AppRouteNames.settings,
+              builder: (context, state) => const SettingsScreen(),
             ),
           ],
         ),
@@ -192,19 +250,15 @@ final GoRouter appRouter = GoRouter(
 );
 
 /// Wraps [AuditSessionScreen] with a route-scoped [AuditSessionProvider].
-///
-/// A fresh provider is built per route instance so that navigating between
-/// two different sessions doesn't leak state from the previous session (the
-/// provider owns a realtime subscription that must be torn down).
 class _AuditSessionRoute extends StatelessWidget {
   const _AuditSessionRoute({required this.uuid});
   final String uuid;
 
   @override
   Widget build(BuildContext context) {
-    final session = context.read<SessionProvider>();
-    final employee = context.read<EmployeeAuthProvider>().employee;
-    final isOwner = session.isAuthenticated;
+    final session = context.read<AuthProvider>();
+    final isOwner = session.isOwner;
+    final employee = session.employee;
 
     return ChangeNotifierProvider<AuditSessionProvider>(
       create:
@@ -215,23 +269,16 @@ class _AuditSessionRoute extends StatelessWidget {
               isOwner: isOwner,
               employeeName: employee?.name,
             ),
-            // When the caller is an employee the backend attributes the scan
-            // automatically; pass null. Owners must supply an employee id.
             shopEmployeeId: isOwner ? null : employee?.id,
           ),
       child: AuditSessionScreen(
         uuid: uuid,
         isOwner: isOwner,
-        // Replace (not push) so the completed session screen is popped off
-        // the stack — otherwise back-from-summary would land on a session
-        // screen that auto-navigates back to summary (loop).
         onCompleted: (_) => context.replace(AppRoutes.auditSummary(uuid)),
       ),
     );
   }
 
-  /// Short, human-readable device label persisted with each scan.
-  /// Refined devices/labels can be plumbed in later from DeviceInfoService.
   String _resolveDeviceLabel({required bool isOwner, String? employeeName}) {
     if (isOwner) return 'Owner device';
     if (employeeName != null && employeeName.isNotEmpty) return employeeName;

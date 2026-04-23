@@ -6,6 +6,7 @@ export 'app_empty_state.dart';
 export 'app_card.dart';
 export 'app_divider.dart';
 export 'app_top_bar.dart';
+export 'app_shell_scaffold.dart';
 export 'common_image.dart';
 export 'toast/imports.dart';
 export 'app_cached_image.dart';

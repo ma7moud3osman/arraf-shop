@@ -1,7 +1,6 @@
+import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
-
-import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 
 /// Single unified login. The backend `POST /api/login` endpoint decides
 /// whether the mobile number belongs to a shop owner or a shop employee
@@ -46,7 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
     FocusScope.of(context).unfocus();
 
     final errorMessage = await context.read<AuthProvider>().login(
-      context: context,
       mobile: _mobileController.text.trim(),
       password: _passwordController.text,
     );
@@ -62,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.select((AuthProvider p) => p.isLoading);
+    final isLoading = context.select((AuthProvider p) => p.isLoggingIn);
 
     final cs = context.theme.colorScheme;
     final tt = context.theme.textTheme;

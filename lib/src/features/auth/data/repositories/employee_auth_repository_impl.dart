@@ -4,6 +4,7 @@ import 'package:arraf_shop/src/config/app_config.dart';
 import 'package:arraf_shop/src/features/auth/domain/entities/shop_employee.dart';
 import 'package:arraf_shop/src/features/auth/domain/repositories/employee_auth_repository.dart';
 import 'package:arraf_shop/src/services/secure_storage_service.dart';
+import 'package:arraf_shop/src/services/storage_service.dart';
 import 'package:arraf_shop/src/utils/utils.dart';
 
 /// Dio-backed implementation of [EmployeeAuthRepository].
@@ -12,8 +13,8 @@ import 'package:arraf_shop/src/utils/utils.dart';
 /// [Failure] values on the Left side of the returned Either.
 class EmployeeAuthRepositoryImpl implements EmployeeAuthRepository {
   EmployeeAuthRepositoryImpl({Dio? dio, SecureStorageService? storage})
-      : _dio = dio ?? AppConfig.dio,
-        _storage = storage ?? SecureStorageService.instance;
+    : _dio = dio ?? AppConfig.dio,
+      _storage = storage ?? SecureStorageService.instance;
 
   final Dio _dio;
   final SecureStorageService _storage;
@@ -37,6 +38,7 @@ class EmployeeAuthRepositoryImpl implements EmployeeAuthRepository {
         // Always drop local auth even if the server call failed — a stale
         // token on the device is worse than a best-effort sign-out.
         await _storage.clearActiveToken();
+        await StorageService.instance.remove(StorageService.cachedEmployeeKey);
       }
     });
   }

@@ -10,7 +10,7 @@ class DioService {
 
   // --- HTTP Methods ---
 
-  FutureEither<Response<dynamic>>get(
+  FutureEither<Response<dynamic>> get(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) {
@@ -19,7 +19,7 @@ class DioService {
     );
   }
 
-  FutureEither<Response<dynamic>>post(
+  FutureEither<Response<dynamic>> post(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
@@ -33,7 +33,7 @@ class DioService {
     );
   }
 
-  FutureEither<Response<dynamic>>put(
+  FutureEither<Response<dynamic>> put(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
@@ -44,7 +44,7 @@ class DioService {
     );
   }
 
-  FutureEither<Response<dynamic>>patch(
+  FutureEither<Response<dynamic>> patch(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
@@ -58,7 +58,7 @@ class DioService {
     );
   }
 
-  FutureEither<Response<dynamic>>delete(
+  FutureEither<Response<dynamic>> delete(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,

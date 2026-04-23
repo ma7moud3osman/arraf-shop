@@ -20,6 +20,9 @@ abstract final class AppRoutes {
   static const String attendance = '/attendance';
   static const String payslips = '/payslips';
 
+  // ── Admin-only ───────────────────────────────────────────
+  static const String employees = '/employees';
+
   // ── Audits ───────────────────────────────────────────────
   static const String audits = '/audits';
 

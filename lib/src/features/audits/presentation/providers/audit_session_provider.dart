@@ -108,9 +108,11 @@ class AuditSessionProvider extends ChangeNotifier {
         // Feed shows only real recorded scans (never duplicates).
         _feed
           ..clear()
-          ..addAll(payload.recentScans
-              .where((s) => s.result != AuditScanResult.duplicate)
-              .take(maxFeedSize));
+          ..addAll(
+            payload.recentScans
+                .where((s) => s.result != AuditScanResult.duplicate)
+                .take(maxFeedSize),
+          );
         // The recorded-barcodes set must include *all* previously scanned
         // barcodes (including historical duplicates) so the scanner can
         // suppress them locally.

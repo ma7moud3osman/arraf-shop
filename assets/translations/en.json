@@ -3,13 +3,24 @@
     "get_started": "Get Started",
     "app_name": "Arraf"
   },
+  "splash": {
+    "tagline": "GOLD  ·  AUDITED"
+  },
   "settings": {
     "title": "Settings",
     "language": "Language",
     "theme": "Theme",
     "theme_system": "System default",
     "theme_light": "Light",
-    "theme_dark": "Dark"
+    "theme_dark": "Dark",
+    "account": "Account",
+    "preferences": "Preferences",
+    "about": "About",
+    "app_version": "App version",
+    "sign_out": "Sign out",
+    "sign_out_confirm_title": "Sign out?",
+    "sign_out_confirm_body": "You'll need to sign in again to continue.",
+    "sign_out_confirm_action": "Sign out"
   },
   "onboarding": {
     "onboarding_title_1": "Inventory,\nUnder Your Thumb",
@@ -29,7 +40,36 @@
     "audits_subtitle": "Scan inventory, reconcile counts, and export reports.",
     "sign_out": "Sign out",
     "attendance_subtitle": "Check in and view your attendance calendar.",
-    "payslips_subtitle": "View and download your monthly payslips."
+    "payslips_subtitle": "View and download your monthly payslips.",
+    "employees_subtitle": "Manage your team, codes, and PINs.",
+    "greeting_morning": "Good morning",
+    "greeting_afternoon": "Good afternoon",
+    "greeting_evening": "Good evening",
+    "role_owner": "Owner",
+    "role_employee": "Employee",
+    "quick_actions": "Quick actions",
+    "overview": "Overview",
+    "today": "Today"
+  },
+  "nav": {
+    "home": "Home",
+    "attendance": "Attendance",
+    "employees": "Employees",
+    "audits": "Audits",
+    "settings": "Settings"
+  },
+  "employees": {
+    "title": "Employees",
+    "search_hint": "Search by name or code",
+    "add": "Add employee",
+    "total_count": "{count} total",
+    "active_badge": "Active",
+    "inactive_badge": "Inactive",
+    "empty_title": "No employees yet",
+    "empty_subtitle": "Your shop's employees will appear here. Add your first teammate to get started.",
+    "coming_soon_title": "Employee management",
+    "coming_soon_subtitle": "You'll be able to add, edit, and deactivate employees right from here. Hang tight — this is coming very soon.",
+    "load_failed": "Could not load employees."
   },
   "auth": {
     "log_in": "Log in",
@@ -78,7 +118,8 @@
       "role_employee": "Employee"
     },
     "forgot_password_mobile_subtitle": "Enter your mobile number to receive a password reset code.",
-    "reset_code_sent": "Reset code sent to your mobile."
+    "reset_code_sent": "Reset code sent to your mobile.",
+    "session_expired": "Your session has expired. Please sign in again."
   },
   "audits": {
     "scanner": {

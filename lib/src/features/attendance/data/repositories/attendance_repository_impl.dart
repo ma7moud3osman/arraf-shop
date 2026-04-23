@@ -81,12 +81,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       final body = response.data as Map<String, dynamic>;
       final raw = body['data'];
       final list = raw is List ? raw : <dynamic>[];
-      final records = list
-          .whereType<Map<dynamic, dynamic>>()
-          .map((m) => AttendanceRecordModel.fromJson(
-                Map<String, dynamic>.from(m),
-              ))
-          .toList();
+      final records =
+          list
+              .whereType<Map<dynamic, dynamic>>()
+              .map(
+                (m) => AttendanceRecordModel.fromJson(
+                  Map<String, dynamic>.from(m),
+                ),
+              )
+              .toList();
       return right<Failure, List<AttendanceRecord>>(records);
     });
   }

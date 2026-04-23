@@ -16,10 +16,7 @@ class SessionWithScans {
   final AuditSession session;
   final List<AuditScan> recentScans;
 
-  const SessionWithScans({
-    required this.session,
-    this.recentScans = const [],
-  });
+  const SessionWithScans({required this.session, this.recentScans = const []});
 }
 
 class Paginated<T> {

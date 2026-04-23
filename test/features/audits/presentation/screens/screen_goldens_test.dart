@@ -54,7 +54,10 @@ void main() {
                   lastPage: 1,
                 ),
               );
-    final provider = AuditsListProvider(repository: repo, realtime: FakeAuditRealtime());
+    final provider = AuditsListProvider(
+      repository: repo,
+      realtime: FakeAuditRealtime(),
+    );
     addTearDown(provider.dispose);
 
     // Seed the provider to success-empty *before* pumping so the skeleton

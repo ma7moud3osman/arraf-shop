@@ -1,5 +1,11 @@
+import 'dart:async';
+
 import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
+
+/// Key under which the onboarding-completed flag is persisted in
+/// [StorageService]. Exposed so the router redirect can read the same key.
+const String onboardingCompletedStorageKey = 'onboarding_completed';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -47,7 +53,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _onPrimary() {
     if (_isLast) {
-      context.go(AppRoutes.login);
+      _finishOnboarding();
       return;
     }
     _pageController.nextPage(
@@ -56,7 +62,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  void _onSkip() => context.go(AppRoutes.login);
+  void _onSkip() => _finishOnboarding();
+
+  void _finishOnboarding() {
+    // Persist the completion flag so the router can skip onboarding on
+    // every subsequent launch. Fire-and-forget — nav must not wait on disk.
+    unawaited(
+      StorageService.instance.setBool(onboardingCompletedStorageKey, true),
+    );
+    context.go(AppRoutes.login);
+  }
 
   @override
   Widget build(BuildContext context) {

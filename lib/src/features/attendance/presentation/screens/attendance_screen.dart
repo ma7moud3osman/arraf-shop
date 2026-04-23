@@ -85,20 +85,21 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         kind == LocationErrorKind.permissionPermanent) {
       final openSettings = await showDialog<bool>(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('attendance.errors.settings_dialog_title'.tr()),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text('common.cancel'.tr()),
+        builder:
+            (ctx) => AlertDialog(
+              title: Text('attendance.errors.settings_dialog_title'.tr()),
+              content: Text(message),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text('common.cancel'.tr()),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text('attendance.errors.open_settings'.tr()),
+                ),
+              ],
             ),
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: Text('attendance.errors.open_settings'.tr()),
-            ),
-          ],
-        ),
       );
       if (openSettings ?? false) {
         if (kind == LocationErrorKind.servicesOff) {
@@ -132,7 +133,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final history = context.watch<AttendanceHistoryProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: Text('attendance.title'.tr())),
+      appBar: AppTopBar(title: 'attendance.title'.tr()),
       body: RefreshIndicator(
         onRefresh: () async {
           await Future.wait([provider.load(), history.load()]);

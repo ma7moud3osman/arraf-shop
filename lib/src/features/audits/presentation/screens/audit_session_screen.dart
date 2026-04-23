@@ -278,9 +278,9 @@ class _CompletedBanner extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final localeTag = Localizations.maybeLocaleOf(context)?.toLanguageTag();
-    final formatted = intl.DateFormat.yMMMd(localeTag)
-        .add_jm()
-        .format(completedAt.toLocal());
+    final formatted = intl.DateFormat.yMMMd(
+      localeTag,
+    ).add_jm().format(completedAt.toLocal());
 
     return Container(
       width: double.infinity,

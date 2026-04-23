@@ -38,9 +38,10 @@ void main() {
 
   group('join', () {
     test('loads and exposes the session on success', () async {
-      repo.showHandler = (uuid) async => Right(
-        SessionWithScans(session: makeSession(uuid: uuid, scannedCount: 5)),
-      );
+      repo.showHandler =
+          (uuid) async => Right(
+            SessionWithScans(session: makeSession(uuid: uuid, scannedCount: 5)),
+          );
 
       await provider.join('uuid-xyz');
 
@@ -66,7 +67,9 @@ void main() {
 
   group('scan (optimistic)', () {
     setUp(() async {
-      repo.showHandler = (uuid) async => Right(SessionWithScans(session: makeSession(uuid: uuid)));
+      repo.showHandler =
+          (uuid) async =>
+              Right(SessionWithScans(session: makeSession(uuid: uuid)));
       await provider.join('uuid-1');
     });
 
@@ -155,49 +158,50 @@ void main() {
       },
     );
 
-    test('server-returned duplicate is kept out of the feed, toast only',
-        () async {
-      final dupScan = makeScan(
-        id: 42,
-        barcode: 'same-barcode',
-        result: AuditScanResult.duplicate,
-      );
-      repo.recordScanHandler =
-          ({
-            required String uuid,
-            required String barcode,
-            required String deviceLabel,
-            int? shopEmployeeId,
-          }) async =>
-              Right(ScanResponse(scan: dupScan, session: provider.session!));
-
-      final before = provider.duplicateTick;
-      await provider.scan('same-barcode');
-
-      expect(provider.feed, isEmpty);
-      expect(provider.duplicateTick, before + 1);
-      expect(provider.recordedBarcodes, contains('same-barcode'));
-    });
-
     test(
-      'local-first: repeat of a known barcode skips the server entirely',
+      'server-returned duplicate is kept out of the feed, toast only',
       () async {
-        var calls = 0;
+        final dupScan = makeScan(
+          id: 42,
+          barcode: 'same-barcode',
+          result: AuditScanResult.duplicate,
+        );
         repo.recordScanHandler =
             ({
               required String uuid,
               required String barcode,
               required String deviceLabel,
               int? shopEmployeeId,
-            }) async {
-              calls += 1;
-              return Right(
-                ScanResponse(
-                  scan: makeScan(id: 100, barcode: barcode),
-                  session: provider.session!,
-                ),
-              );
-            };
+            }) async =>
+                Right(ScanResponse(scan: dupScan, session: provider.session!));
+
+        final before = provider.duplicateTick;
+        await provider.scan('same-barcode');
+
+        expect(provider.feed, isEmpty);
+        expect(provider.duplicateTick, before + 1);
+        expect(provider.recordedBarcodes, contains('same-barcode'));
+      },
+    );
+
+    test(
+      'local-first: repeat of a known barcode skips the server entirely',
+      () async {
+        var calls = 0;
+        repo.recordScanHandler = ({
+          required String uuid,
+          required String barcode,
+          required String deviceLabel,
+          int? shopEmployeeId,
+        }) async {
+          calls += 1;
+          return Right(
+            ScanResponse(
+              scan: makeScan(id: 100, barcode: barcode),
+              session: provider.session!,
+            ),
+          );
+        };
 
         await provider.scan('X');
         expect(calls, 1);
@@ -238,7 +242,9 @@ void main() {
           deviceLabel: 'Emp Device',
           shopEmployeeId: null,
         );
-        repo.showHandler = (uuid) async => Right(SessionWithScans(session: makeSession(uuid: uuid)));
+        repo.showHandler =
+            (uuid) async =>
+                Right(SessionWithScans(session: makeSession(uuid: uuid)));
         await employeeProvider.join('uuid-1');
 
         repo.recordScanHandler =
@@ -283,7 +289,9 @@ void main() {
 
   group('complete', () {
     test('updates the session with the completed payload', () async {
-      repo.showHandler = (uuid) async => Right(SessionWithScans(session: makeSession(uuid: uuid)));
+      repo.showHandler =
+          (uuid) async =>
+              Right(SessionWithScans(session: makeSession(uuid: uuid)));
       await provider.join('uuid-1');
 
       repo.completeHandler =
@@ -303,11 +311,15 @@ void main() {
 
   group('realtime', () {
     setUp(() async {
-      repo.showHandler = (uuid) async => Right(
-        SessionWithScans(
-          session: makeSession(uuid: uuid, channel: 'private-shop-audit.17'),
-        ),
-      );
+      repo.showHandler =
+          (uuid) async => Right(
+            SessionWithScans(
+              session: makeSession(
+                uuid: uuid,
+                channel: 'private-shop-audit.17',
+              ),
+            ),
+          );
       await provider.join('uuid-1');
     });
 
@@ -393,7 +405,9 @@ void main() {
 
   group('feed buffer', () {
     test('caps at 20 newest entries (mix of local + realtime)', () async {
-      repo.showHandler = (uuid) async => Right(SessionWithScans(session: makeSession(uuid: uuid)));
+      repo.showHandler =
+          (uuid) async =>
+              Right(SessionWithScans(session: makeSession(uuid: uuid)));
       await provider.join('uuid-1');
       provider.subscribe();
 

@@ -7,6 +7,7 @@ import '../../../../shared/enums/app_status.dart';
 import '../../../../shared/helpers/show_toast.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_error_widget.dart';
+import '../../../../shared/widgets/app_top_bar.dart';
 import '../../domain/entities/audit_session.dart';
 import '../../domain/entities/audit_status.dart';
 import '../providers/audits_list_provider.dart';
@@ -94,7 +95,7 @@ class _AuditsListScreenState extends State<AuditsListScreen> {
     final provider = context.watch<AuditsListProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: Text('audits.list.title'.tr())),
+      appBar: AppTopBar(title: 'audits.list.title'.tr()),
       body: _buildBody(provider),
       floatingActionButton:
           widget.isOwner

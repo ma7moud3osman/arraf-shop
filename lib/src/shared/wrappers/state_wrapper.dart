@@ -1,21 +1,19 @@
-import '../../imports/imports.dart';
-import '../../features/auth/data/repositories/auth_repository_impl.dart';
-import '../../features/auth/data/repositories/employee_auth_repository_impl.dart';
-import '../../features/auth/presentation/providers/auth_provider.dart';
-import '../../features/auth/presentation/providers/employee_auth_provider.dart';
-import '../../features/auth/presentation/providers/session_provider.dart';
-import '../../features/audits/data/repositories/audit_repository_impl.dart';
-import '../../features/audits/domain/realtime/audit_realtime.dart';
-import '../../features/audits/domain/repositories/audit_repository.dart';
-import '../../features/audits/presentation/providers/audits_list_provider.dart';
 import '../../features/attendance/data/repositories/attendance_repository_impl.dart';
 import '../../features/attendance/domain/repositories/attendance_repository.dart';
 import '../../features/attendance/presentation/providers/attendance_history_provider.dart';
 import '../../features/attendance/presentation/providers/attendance_provider.dart';
+import '../../features/audits/data/repositories/audit_repository_impl.dart';
+import '../../features/audits/domain/realtime/audit_realtime.dart';
+import '../../features/audits/domain/repositories/audit_repository.dart';
+import '../../features/audits/presentation/providers/audits_list_provider.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/data/repositories/employee_auth_repository_impl.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/payroll/data/repositories/payroll_repository_impl.dart';
 import '../../features/payroll/domain/repositories/payroll_repository.dart';
 import '../../features/payroll/presentation/providers/payroll_list_provider.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
+import '../../imports/imports.dart';
 
 /// Composes the MultiProvider that wraps the app.
 ///
@@ -45,17 +43,12 @@ class StateWrapper extends StatelessWidget {
         ),
         Provider<PayrollRepository>(create: (_) => PayrollRepositoryImpl()),
 
-        // ── Auth ───────────────────────────────────────────────────────
-        ChangeNotifierProvider(
-          create: (_) => SessionProvider(repository: AuthRepositoryImpl()),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(repository: AuthRepositoryImpl()),
-        ),
+        // ── Auth (single source of truth for the signed-in actor) ──────
         ChangeNotifierProvider(
           create:
-              (_) => EmployeeAuthProvider(
-                repository: EmployeeAuthRepositoryImpl(),
+              (_) => AuthProvider(
+                authRepository: AuthRepositoryImpl(),
+                employeeRepository: EmployeeAuthRepositoryImpl(),
               ),
         ),
 

@@ -29,21 +29,28 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  void _handleSignup() {
+  Future<void> _handleSignup() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    context.read<AuthProvider>().signUp(
-      context: context,
+    final error = await context.read<AuthProvider>().signUp(
       name: _nameController.text.trim(),
       email: _emailController.text.trim(),
       mobile: _mobileController.text.trim(),
       password: _passwordController.text,
     );
+
+    if (!mounted) return;
+
+    if (error != null) {
+      showToast(context, message: error, status: 'error');
+      return;
+    }
+    context.go(AppRoutes.home);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.select((AuthProvider p) => p.isLoading);
+    final isLoading = context.select((AuthProvider p) => p.isSigningUp);
 
     final cs = context.theme.colorScheme;
     final tt = context.theme.textTheme;

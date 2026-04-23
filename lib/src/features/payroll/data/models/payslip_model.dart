@@ -25,17 +25,18 @@ class PayslipModel extends Payslip {
 
   factory PayslipModel.fromJson(Map<String, dynamic> json) {
     final rawAdj = json['adjustments'];
-    final adjustments = rawAdj is List
-        ? rawAdj.whereType<Map<dynamic, dynamic>>().map((m) {
-            final a = Map<String, dynamic>.from(m);
-            return PayslipAdjustment(
-              id: parseInt(a['id']),
-              type: (a['type'] as String?) ?? 'deduction',
-              reason: (a['reason'] as String?) ?? '',
-              amount: parseDouble(a['amount']),
-            );
-          }).toList()
-        : const <PayslipAdjustment>[];
+    final adjustments =
+        rawAdj is List
+            ? rawAdj.whereType<Map<dynamic, dynamic>>().map((m) {
+              final a = Map<String, dynamic>.from(m);
+              return PayslipAdjustment(
+                id: parseInt(a['id']),
+                type: (a['type'] as String?) ?? 'deduction',
+                reason: (a['reason'] as String?) ?? '',
+                amount: parseDouble(a['amount']),
+              );
+            }).toList()
+            : const <PayslipAdjustment>[];
 
     return PayslipModel(
       id: parseInt(json['id']),

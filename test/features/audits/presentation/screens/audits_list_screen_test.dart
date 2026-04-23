@@ -36,7 +36,10 @@ void main() {
                     lastPage: 1,
                   ),
                 );
-      final provider = AuditsListProvider(repository: repo, realtime: FakeAuditRealtime());
+      final provider = AuditsListProvider(
+        repository: repo,
+        realtime: FakeAuditRealtime(),
+      );
 
       String? opened;
       await tester.pumpWidget(
@@ -79,7 +82,10 @@ void main() {
                     lastPage: 1,
                   ),
                 );
-      final provider = AuditsListProvider(repository: repo, realtime: FakeAuditRealtime());
+      final provider = AuditsListProvider(
+        repository: repo,
+        realtime: FakeAuditRealtime(),
+      );
 
       await tester.pumpWidget(
         harness(
@@ -96,7 +102,10 @@ void main() {
     });
 
     testWidgets('hides FAB for employees', (tester) async {
-      final provider = AuditsListProvider(repository: FakeAuditRepository(), realtime: FakeAuditRealtime());
+      final provider = AuditsListProvider(
+        repository: FakeAuditRepository(),
+        realtime: FakeAuditRealtime(),
+      );
 
       await tester.pumpWidget(
         harness(
