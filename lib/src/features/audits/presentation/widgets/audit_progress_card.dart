@@ -28,83 +28,72 @@ class AuditProgressCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Line 1 — scanned / expected counts on one side, percent on the
+          // other. Label sits as a tiny caption above the percent so the
+          // counts read big without losing context.
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Text(
+                '${session.progressPercent}%',
+                style: tt.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: cs.primary,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'audits.session.progress_title'.tr(),
+                style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+              ),
+              const SizedBox(width: 8),
+              Text.rich(
+                TextSpan(
+                  style: tt.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                   children: [
-                    Text(
-                      'audits.session.progress_title'.tr(),
-                      style: tt.labelMedium?.copyWith(
+                    TextSpan(text: '${session.scannedCount}'),
+                    TextSpan(
+                      text: ' / ${session.expectedCount}',
+                      style: TextStyle(
                         color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text.rich(
-                      TextSpan(
-                        style: tt.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                        children: [
-                          TextSpan(text: '${session.scannedCount}'),
-                          TextSpan(
-                            text: ' / ${session.expectedCount}',
-                            style: TextStyle(
-                              color: cs.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              Text(
-                '${session.progressPercent}%',
-                style: tt.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: cs.primary,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress,
-              minHeight: 8,
+              minHeight: 6,
               backgroundColor: cs.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation(cs.primary),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          // Line 2 — weight values inline next to the scale icon + label.
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(Icons.scale_outlined, size: 16, color: cs.onSurfaceVariant),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  'audits.session.weight_title'.tr(),
-                  style: tt.labelMedium?.copyWith(
-                    color: cs.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Icon(Icons.scale_outlined, size: 14, color: cs.onSurfaceVariant),
+              const SizedBox(width: 4),
+              Text(
+                'audits.session.weight_title'.tr(),
+                style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
               ),
-              const SizedBox(width: 12),
+              const Spacer(),
               Flexible(
                 child: Text.rich(
                   TextSpan(
-                    style: tt.titleSmall?.copyWith(
+                    style: tt.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
@@ -112,7 +101,7 @@ class AuditProgressCard extends StatelessWidget {
                       TextSpan(text: formatWeight(session.scannedWeightGrams)),
                       TextSpan(
                         text:
-                            '  /  ${formatWeight(session.expectedWeightGrams)}',
+                            ' / ${formatWeight(session.expectedWeightGrams)}',
                         style: TextStyle(
                           color: cs.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
