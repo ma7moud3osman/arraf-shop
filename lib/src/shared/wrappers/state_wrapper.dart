@@ -6,6 +6,17 @@ import '../../features/audits/data/repositories/audit_repository_impl.dart';
 import '../../features/audits/domain/realtime/audit_realtime.dart';
 import '../../features/audits/domain/repositories/audit_repository.dart';
 import '../../features/audits/presentation/providers/audits_list_provider.dart';
+import '../../features/employees/data/repositories/employees_repository_impl.dart';
+import '../../features/employees/domain/repositories/employees_repository.dart';
+import '../../features/employees/presentation/providers/employees_list_provider.dart';
+import '../../features/purchase_invoices/data/repositories/purchase_invoice_repository_impl.dart';
+import '../../features/purchase_invoices/data/repositories/shop_customer_repository_impl.dart';
+import '../../features/purchase_invoices/data/repositories/shop_item_repository_impl.dart';
+import '../../features/purchase_invoices/domain/repositories/purchase_invoice_repository.dart';
+import '../../features/purchase_invoices/domain/repositories/shop_customer_repository.dart';
+import '../../features/purchase_invoices/domain/repositories/shop_item_repository.dart';
+import '../../features/purchase_invoices/presentation/providers/shop_customer_picker_provider.dart';
+import '../../features/purchase_invoices/presentation/providers/shop_item_picker_provider.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/data/repositories/employee_auth_repository_impl.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
@@ -46,10 +57,16 @@ class StateWrapper extends StatelessWidget {
           create: (_) => AttendanceRepositoryImpl(),
         ),
         Provider<PayrollRepository>(create: (_) => PayrollRepositoryImpl()),
-        Provider<GoldPriceRepository>(
-          create: (_) => GoldPriceRepositoryImpl(),
-        ),
+        Provider<GoldPriceRepository>(create: (_) => GoldPriceRepositoryImpl()),
         Provider<GoldPriceRealtime>(create: (_) => PusherService.instance),
+        Provider<EmployeesRepository>(create: (_) => EmployeesRepositoryImpl()),
+        Provider<ShopCustomerRepository>(
+          create: (_) => ShopCustomerRepositoryImpl(),
+        ),
+        Provider<ShopItemRepository>(create: (_) => ShopItemRepositoryImpl()),
+        Provider<PurchaseInvoiceRepository>(
+          create: (_) => PurchaseInvoiceRepositoryImpl(),
+        ),
 
         // ── Auth (single source of truth for the signed-in actor) ──────
         ChangeNotifierProvider(
@@ -93,10 +110,34 @@ class StateWrapper extends StatelessWidget {
 
         // ── Gold price (public realtime channel; admin-only writes) ────
         ChangeNotifierProvider(
-          create: (ctx) => GoldPriceProvider(
-            repository: ctx.read<GoldPriceRepository>(),
-            realtime: ctx.read<GoldPriceRealtime>(),
-          ),
+          create:
+              (ctx) => GoldPriceProvider(
+                repository: ctx.read<GoldPriceRepository>(),
+                realtime: ctx.read<GoldPriceRealtime>(),
+              ),
+        ),
+
+        // ── Employees (admin / owner-facing HR management) ─────────────
+        ChangeNotifierProvider(
+          create:
+              (ctx) => EmployeesListProvider(
+                repository: ctx.read<EmployeesRepository>(),
+              ),
+        ),
+
+        // ── Purchase-invoice pickers (read-only lookups, shared across
+        // wizard instances; the wizard's draft is route-scoped) ──────
+        ChangeNotifierProvider(
+          create:
+              (ctx) => ShopCustomerPickerProvider(
+                repository: ctx.read<ShopCustomerRepository>(),
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (ctx) => ShopItemPickerProvider(
+                repository: ctx.read<ShopItemRepository>(),
+              ),
         ),
 
         // ── User preferences (theme + locale) ──────────────────────────

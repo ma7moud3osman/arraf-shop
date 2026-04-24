@@ -1,7 +1,9 @@
 {
   "shared": {
     "get_started": "ابدأ",
-    "app_name": "عرّاف"
+    "app_name": "عرّاف",
+    "next": "التالي",
+    "back": "السابق"
   },
   "splash": {
     "tagline": "ذهبٌ موثّق"
@@ -79,7 +81,50 @@
     "empty_subtitle": "سيظهر موظفو محلك هنا. أضف أول زميل للبدء.",
     "coming_soon_title": "إدارة الموظفين",
     "coming_soon_subtitle": "ستتمكن من إضافة الموظفين وتعديلهم وإيقافهم مباشرة من هنا. ترقّب — قريباً جداً.",
-    "load_failed": "تعذّر تحميل الموظفين."
+    "load_failed": "تعذّر تحميل الموظفين.",
+    "never_seen": "لم يسجّل حضوراً بعد",
+    "no_payslip": "لا توجد قسيمة راتب",
+    "tabs": {
+      "profile": "البيانات",
+      "attendance": "الحضور",
+      "payslips": "قسائم الراتب"
+    },
+    "detail": {
+      "load_failed": "تعذّر تحميل بيانات الموظف."
+    },
+    "profile": {
+      "contact": "بيانات التواصل",
+      "phone": "رقم الجوّال",
+      "code": "الكود",
+      "address": "العنوان",
+      "national_id": "الرقم القومي",
+      "base_salary": "الراتب الأساسي",
+      "recent_attendance": "الأيام الأخيرة",
+      "recent_payslips": "قسائم حديثة"
+    },
+    "attendance": {
+      "load_failed": "تعذّر تحميل سجل الحضور.",
+      "previous_month": "الشهر السابق",
+      "next_month": "الشهر التالي",
+      "present": "حضور",
+      "absent": "غياب",
+      "hours_worked": "ساعة عمل",
+      "late_minutes": "دقيقة تأخير",
+      "no_record": "لا يوجد سجل حضور لهذا اليوم.",
+      "check_in": "تسجيل الدخول",
+      "check_out": "تسجيل الخروج",
+      "worked": "ساعات العمل",
+      "late_by": "متأخر بـ",
+      "early_leave_by": "انصرف مبكراً بـ",
+      "manual_override": "تم التعديل يدوياً",
+      "notes": "ملاحظات",
+      "status": {
+        "present": "حاضر",
+        "late": "متأخر",
+        "absent": "غائب",
+        "checked_out": "انصرف"
+      }
+    }
   },
   "auth": {
     "log_in": "تسجيل الدخول",
@@ -159,6 +204,7 @@
       "start_new": "جرد جديد",
       "untitled": "جرد بدون عنوان",
       "start_failed": "تعذر بدء عملية جرد جديدة.",
+      "already_active": "هناك عملية جرد قيد التنفيذ بالفعل. أنهها قبل بدء جرد جديد.",
       "load_failed": "تعذر تحميل عمليات الجرد.",
       "empty_title": "لا توجد عمليات جرد بعد",
       "empty_subtitle": "ابدأ عملية جرد جديدة لحصر المخزون.",
@@ -166,7 +212,12 @@
       "new_dialog_title": "بدء جرد جديد",
       "title_field_label": "العنوان (اختياري)",
       "title_field_hint": "مثال: {example}",
-      "start": "بدء"
+      "start": "بدء",
+      "participants_label": "المشاركون",
+      "participants_search_hint": "ابحث بالاسم أو الكود أو الجوال",
+      "participants_selected": "تم اختيار {count}",
+      "participants_empty": "لا يوجد موظفون.",
+      "participants_load_failed": "تعذر تحميل الموظفين."
     },
     "session": {
       "title": "جلسة الجرد",
@@ -200,6 +251,21 @@
       "unexpected_failed": "تعذر تحميل المسح غير المتوقع.",
       "no_missing": "لا يوجد مفقود — تم مسح كل الأصناف المتوقعة.",
       "no_unexpected": "لا يوجد مسح غير متوقع."
+    },
+    "live_summary": {
+      "title": "الملخص اللحظي",
+      "refresh": "تحديث",
+      "load_failed": "تعذر تحميل الملخص.",
+      "expected_count": "العدد المتوقع",
+      "scanned_count": "العدد الممسوح",
+      "count_difference": "فرق العدد",
+      "expected_weight": "الوزن المتوقع",
+      "scanned_weight": "الوزن الممسوح",
+      "weight_difference": "فرق الوزن",
+      "exceptions": "الاستثناءات",
+      "missing_count": "مفقود",
+      "unexpected_count": "غير متوقع",
+      "not_found_count": "غير موجود"
     }
   },
   "attendance": {
@@ -253,7 +319,8 @@
     }
   },
   "common": {
-    "cancel": "إلغاء"
+    "cancel": "إلغاء",
+    "clear": "مسح"
   },
   "units": {
     "g": "جم",

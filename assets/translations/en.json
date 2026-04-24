@@ -1,7 +1,9 @@
 {
   "shared": {
     "get_started": "Get Started",
-    "app_name": "Arraf"
+    "app_name": "Arraf",
+    "next": "Next",
+    "back": "Back"
   },
   "splash": {
     "tagline": "GOLD  ·  AUDITED"
@@ -79,7 +81,50 @@
     "empty_subtitle": "Your shop's employees will appear here. Add your first teammate to get started.",
     "coming_soon_title": "Employee management",
     "coming_soon_subtitle": "You'll be able to add, edit, and deactivate employees right from here. Hang tight — this is coming very soon.",
-    "load_failed": "Could not load employees."
+    "load_failed": "Could not load employees.",
+    "never_seen": "Never checked in",
+    "no_payslip": "No payslip",
+    "tabs": {
+      "profile": "Profile",
+      "attendance": "Attendance",
+      "payslips": "Payslips"
+    },
+    "detail": {
+      "load_failed": "Could not load employee."
+    },
+    "profile": {
+      "contact": "Contact",
+      "phone": "Phone",
+      "code": "Code",
+      "address": "Address",
+      "national_id": "National ID",
+      "base_salary": "Base salary",
+      "recent_attendance": "Recent days",
+      "recent_payslips": "Recent payslips"
+    },
+    "attendance": {
+      "load_failed": "Could not load attendance.",
+      "previous_month": "Previous month",
+      "next_month": "Next month",
+      "present": "present",
+      "absent": "absent",
+      "hours_worked": "h worked",
+      "late_minutes": "late min",
+      "no_record": "No attendance recorded for this day.",
+      "check_in": "Check in",
+      "check_out": "Check out",
+      "worked": "Worked",
+      "late_by": "Late by",
+      "early_leave_by": "Left early by",
+      "manual_override": "Manually overridden",
+      "notes": "Notes",
+      "status": {
+        "present": "Present",
+        "late": "Late",
+        "absent": "Absent",
+        "checked_out": "Checked out"
+      }
+    }
   },
   "auth": {
     "log_in": "Log in",
@@ -159,6 +204,7 @@
       "start_new": "New audit",
       "untitled": "Untitled audit",
       "start_failed": "Could not start a new audit.",
+      "already_active": "An audit is already in progress. Complete it before starting a new one.",
       "load_failed": "Could not load audits.",
       "empty_title": "No audits yet",
       "empty_subtitle": "Start a new audit to begin counting stock.",
@@ -166,7 +212,12 @@
       "new_dialog_title": "Start new audit",
       "title_field_label": "Title (optional)",
       "title_field_hint": "e.g. {example}",
-      "start": "Start"
+      "start": "Start",
+      "participants_label": "Participants",
+      "participants_search_hint": "Search by name, code, or phone",
+      "participants_selected": "{count} selected",
+      "participants_empty": "No employees found.",
+      "participants_load_failed": "Could not load employees."
     },
     "session": {
       "title": "Audit session",
@@ -200,6 +251,21 @@
       "unexpected_failed": "Could not load unexpected scans.",
       "no_missing": "Nothing missing — every expected item was scanned.",
       "no_unexpected": "No unexpected scans."
+    },
+    "live_summary": {
+      "title": "Live summary",
+      "refresh": "Refresh",
+      "load_failed": "Could not load summary.",
+      "expected_count": "Expected count",
+      "scanned_count": "Scanned count",
+      "count_difference": "Count difference",
+      "expected_weight": "Expected weight",
+      "scanned_weight": "Scanned weight",
+      "weight_difference": "Weight difference",
+      "exceptions": "Exceptions",
+      "missing_count": "Missing",
+      "unexpected_count": "Unexpected",
+      "not_found_count": "Not found"
     }
   },
   "attendance": {
@@ -253,7 +319,8 @@
     }
   },
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "clear": "Clear"
   },
   "units": {
     "g": "g",
@@ -280,6 +347,54 @@
     "toast": {
       "pdf_unavailable": "PDF is not available for this payslip.",
       "open_failed": "Could not open the payslip."
+    }
+  },
+  "purchase_invoice": {
+    "title": "Create purchase invoice",
+    "home_subtitle": "Record gold purchases from your suppliers.",
+    "step_header": "Header",
+    "step_items": "Items",
+    "step_review": "Review",
+    "supplier": "Supplier",
+    "supplier_name_fallback": "Supplier name (manual)",
+    "pick_supplier": "Pick supplier",
+    "search_supplier": "Search by name or phone",
+    "no_suppliers": "No suppliers yet.",
+    "sale_date": "Sale date",
+    "payment_method": "Payment method",
+    "discount": "Discount",
+    "paid_amount": "Paid amount",
+    "notes": "Notes",
+    "tap_to_pick": "Tap to pick",
+    "shop_item": "Catalog item",
+    "pick_item": "Pick catalog item",
+    "search_item": "Search items",
+    "no_items": "No items in your catalog yet.",
+    "stock_label": "{} on hand",
+    "weight_total": "Total weight (g)",
+    "quantity": "Quantity",
+    "manufacturer_fee": "Manufacturer fee (per piece)",
+    "manufacturer_fee_total": "Manufacturer fees total",
+    "item_n": "Item {}",
+    "piece_n": "Piece {}",
+    "pieces_label": "{} piece(s)",
+    "piece_weight_hint": "Override weight (optional)",
+    "add_item": "Add another item",
+    "submit": "Create invoice",
+    "review_intro": "Confirm the invoice details. The backend will compute the final totals from today's gold price.",
+    "review_warning": "Some items are still missing required fields (catalog item, weight, or piece images).",
+    "item_count": "Items",
+    "piece_count": "Pieces",
+    "image": {
+      "camera": "Take photo",
+      "gallery": "Choose from gallery"
+    },
+    "created": {
+      "title": "Invoice created",
+      "heading": "Invoice {} created.",
+      "subtitle": "{} item(s) recorded.",
+      "share": "Share with supplier",
+      "done": "Done"
     }
   }
 }
