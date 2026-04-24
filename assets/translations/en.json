@@ -323,7 +323,8 @@
       "exceptions": "Exceptions",
       "missing_count": "Missing",
       "unexpected_count": "Unexpected",
-      "not_found_count": "Not found"
+      "not_found_count": "Not found",
+      "missing_title": "Missing items ({count})"
     }
   },
   "attendance": {

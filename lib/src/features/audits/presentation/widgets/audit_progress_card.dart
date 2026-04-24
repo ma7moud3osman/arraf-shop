@@ -42,10 +42,14 @@ class AuditProgressCard extends StatelessWidget {
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
-              const Spacer(),
-              Text(
-                'audits.session.progress_title'.tr(),
-                style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'audits.session.progress_title'.tr(),
+                  style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                ),
               ),
               const SizedBox(width: 8),
               Text.rich(
@@ -85,11 +89,14 @@ class AuditProgressCard extends StatelessWidget {
             children: [
               Icon(Icons.scale_outlined, size: 14, color: cs.onSurfaceVariant),
               const SizedBox(width: 4),
-              Text(
-                'audits.session.weight_title'.tr(),
-                style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+              Flexible(
+                child: Text(
+                  'audits.session.weight_title'.tr(),
+                  style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Flexible(
                 child: Text.rich(
                   TextSpan(

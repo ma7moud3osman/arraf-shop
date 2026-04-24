@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_loading.dart';
 import '../../domain/entities/audit_report_snapshot.dart';
 import '../../domain/repositories/audit_repository.dart';
 import '../providers/audit_summary_provider.dart';
+import 'missing_items_sheet.dart';
 
 /// Bottom sheet that renders the live audit summary on top of the active
 /// session screen. Kicks off [AuditSummaryProvider.load] on mount and
@@ -83,7 +84,10 @@ class LiveSummarySheet extends StatelessWidget {
                     message: provider.errorMessage,
                     onRetry: () => provider.load(uuid),
                   ),
-                AppStatus.success => _Content(snapshot: provider.snapshot!),
+                AppStatus.success => _Content(
+                    snapshot: provider.snapshot!,
+                    uuid: uuid,
+                  ),
               },
             ],
           ),
@@ -94,9 +98,10 @@ class LiveSummarySheet extends StatelessWidget {
 }
 
 class _Content extends StatelessWidget {
-  const _Content({required this.snapshot});
+  const _Content({required this.snapshot, required this.uuid});
 
   final AuditReportSnapshot snapshot;
+  final String uuid;
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +178,9 @@ class _Content extends StatelessWidget {
                 label: 'audits.live_summary.missing_count'.tr(),
                 value: '${snapshot.missingCount}',
                 valueColor: snapshot.missingCount > 0 ? cs.error : null,
+                onTap: snapshot.missingCount > 0
+                    ? () => MissingItemsSheet.show(context, uuid: uuid)
+                    : null,
               ),
             ),
             const SizedBox(width: 8),
@@ -203,18 +211,20 @@ class _StatTile extends StatelessWidget {
     required this.label,
     required this.value,
     this.valueColor,
+    this.onTap,
   });
 
   final String label;
   final String value;
   final Color? valueColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
-    return Container(
+    final body = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest.withValues(alpha: 0.6),
@@ -224,12 +234,24 @@ class _StatTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: tt.labelSmall?.copyWith(
-              color: cs.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: tt.labelSmall?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (onTap != null)
+                Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: cs.onSurfaceVariant,
+                ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(
@@ -241,6 +263,17 @@ class _StatTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+
+    if (onTap == null) return body;
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: body,
       ),
     );
   }

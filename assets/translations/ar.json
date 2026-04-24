@@ -323,7 +323,8 @@
       "exceptions": "الاستثناءات",
       "missing_count": "مفقود",
       "unexpected_count": "غير متوقع",
-      "not_found_count": "غير موجود"
+      "not_found_count": "غير موجود",
+      "missing_title": "الأصناف المفقودة ({count})"
     }
   },
   "attendance": {
