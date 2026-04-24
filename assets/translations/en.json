@@ -13,7 +13,18 @@
     "edit_action": "Edit",
     "updated_successfully": "Gold price updated.",
     "empty": "No gold price published yet.",
-    "home_subtitle": "Live karat / unit prices, edited by admins."
+    "home_subtitle": "Live karat / unit prices, edited by admins.",
+    "edit": {
+      "title": "Edit 21K price",
+      "description": "Enter the 21K buy and sale price. 18K, 22K, and 24K are derived automatically.",
+      "karat_21_buy": "21K buy price",
+      "karat_21_sale": "21K sale price",
+      "required": "This field is required.",
+      "numeric": "Enter a valid number.",
+      "gt_zero": "Value must be greater than zero.",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
