@@ -154,7 +154,7 @@ class _Header extends StatelessWidget {
         if (employee.role != null && employee.role!.isNotEmpty) ...[
           SizedBox(height: 2.h),
           Text(
-            employee.role!,
+            'roles.${employee.role}'.tr(),
             style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
           ),
         ],

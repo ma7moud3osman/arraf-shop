@@ -29,6 +29,13 @@
       "cancel": "Cancel"
     }
   },
+  "roles": {
+    "cashier": "Cashier",
+    "manager": "Manager",
+    "sales": "Sales",
+    "admin": "Admin",
+    "owner": "Owner"
+  },
   "errors": {
     "generic": "Something went wrong. Please try again.",
     "try_again": "Try again",

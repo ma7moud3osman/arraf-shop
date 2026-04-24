@@ -281,7 +281,7 @@ class _EmployeeTile extends StatelessWidget {
                     SizedBox(height: 2.h),
                     Text(
                       (employee.role?.isNotEmpty ?? false)
-                          ? employee.role!
+                          ? 'roles.${employee.role}'.tr()
                           : (employee.code ?? ''),
                       style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
                       maxLines: 1,

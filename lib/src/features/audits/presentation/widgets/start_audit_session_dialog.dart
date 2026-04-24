@@ -189,16 +189,31 @@ class _Body extends StatelessWidget {
             final emp = picker.employees[i];
             final selected = picker.isSelected(emp.id);
             final role = emp.role;
-            final code = emp.code ?? '';
-            final subtitle = role == null || role.isEmpty
-                ? code
-                : (code.isEmpty ? role : '$role • $code');
+            final subtitle = (role == null || role.isEmpty)
+                ? ''
+                : 'roles.$role'.tr();
             return CheckboxListTile(
               value: selected,
               onChanged: (_) => picker.toggle(emp.id),
-              title: Text(emp.name),
-              subtitle: subtitle.isEmpty ? null : Text(subtitle),
+              title: Text(
+                emp.name,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: subtitle.isEmpty
+                  ? null
+                  : Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
               dense: true,
+              visualDensity: const VisualDensity(
+                horizontal: -4,
+                vertical: -4,
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+              controlAffinity: ListTileControlAffinity.leading,
             );
           },
         );
