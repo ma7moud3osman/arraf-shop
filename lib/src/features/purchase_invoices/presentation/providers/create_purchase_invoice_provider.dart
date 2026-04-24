@@ -190,7 +190,9 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
         missingPieceWeight += 1;
       }
       for (final piece in item.pieces) {
-        if (piece.image == null) missingPieceImage += 1;
+        // Image is required only in production builds — in debug we let
+        // the user submit without one to speed up local testing.
+        if (!kDebugMode && piece.image == null) missingPieceImage += 1;
         if (piece.weight == null || piece.weight! <= 0) {
           missingPieceWeight += 1;
         }

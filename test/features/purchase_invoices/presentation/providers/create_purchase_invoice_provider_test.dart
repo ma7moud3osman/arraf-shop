@@ -106,26 +106,24 @@ void main() {
       },
     );
 
-    test('blocks submit when any piece is missing image', () async {
-      provider.setItemShopItem(0, makeItem());
-      provider.setItemWeightTotal(0, 10);
-      provider.setItemQuantity(0, 2);
+    test(
+      'image blocker is debug-aware: missing image is not a blocker in debug',
+      () async {
+        provider.setItemShopItem(0, makeItem());
+        provider.setItemWeightTotal(0, 10);
+        provider.setItemQuantity(0, 2);
+        provider.setPieceWeight(0, 0, 5);
+        provider.setPieceWeight(0, 1, 5);
 
-      final tmpDir = await Directory.systemTemp.createTemp('piv_img_');
-      final file = await File('${tmpDir.path}/x.jpg').create();
-      await file.writeAsBytes(const [0, 1, 2]);
-
-      // Only the first piece has an image; both have weight.
-      provider.setPieceImage(0, 0, file);
-      provider.setPieceWeight(0, 0, 5);
-      provider.setPieceWeight(0, 1, 5);
-
-      expect(provider.itemsAreValid, isFalse);
-      final blocker = provider.submitBlockers.firstWhere(
-        (b) => b.key == 'missing_piece_image',
-      );
-      expect(blocker.count, 1);
-    });
+        // Tests run under kDebugMode = true, so missing piece image must
+        // NOT block submission. Production builds re-enable the rule.
+        expect(provider.itemsAreValid, isTrue);
+        expect(
+          provider.submitBlockers.where((b) => b.key == 'missing_piece_image'),
+          isEmpty,
+        );
+      },
+    );
   });
 
   group('submit', () {
