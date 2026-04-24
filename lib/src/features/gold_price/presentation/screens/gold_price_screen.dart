@@ -155,7 +155,7 @@ class _PricePair extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          value.toStringAsFixed(2),
+          value.ceil().toString(),
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
         ),
       ],
