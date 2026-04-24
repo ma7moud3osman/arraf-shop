@@ -254,7 +254,11 @@ ThemeData _buildTheme(
     // Floating Action Button Theme
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: colorScheme.primary,
-      foregroundColor: colorScheme.onPrimaryContainer,
+      foregroundColor: colorScheme.onPrimary,
+      extendedTextStyle: textTheme.labelLarge?.copyWith(
+        color: colorScheme.onPrimary,
+        fontWeight: FontWeight.w600,
+      ),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
