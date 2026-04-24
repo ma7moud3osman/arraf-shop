@@ -68,10 +68,10 @@ class VersionUpdateService {
         appVersionResult: updateResult,
         context: context,
         mandatory: mandatory,
-        title: title ?? 'New version available',
-        content: content ?? 'Would you like to update your application?',
-        cancelButtonText: cancelText ?? 'UPDATE LATER',
-        updateButtonText: updateText ?? 'UPDATE',
+        title: title ?? 'version_update.title'.tr(),
+        content: content ?? 'version_update.content'.tr(),
+        cancelButtonText: cancelText ?? 'version_update.later'.tr(),
+        updateButtonText: updateText ?? 'version_update.update'.tr(),
       );
     });
   }
@@ -91,7 +91,7 @@ class VersionUpdateService {
         appVersionResult: updateResult,
         context: context,
         mandatory: mandatory,
-        title: title ?? 'New version available',
+        title: title ?? 'version_update.title'.tr(),
         content: content,
       );
     });

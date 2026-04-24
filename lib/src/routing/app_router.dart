@@ -23,6 +23,7 @@ import 'package:arraf_shop/src/features/splash/presentation/screens/animated_spl
 import 'package:arraf_shop/src/routing/app_routes.dart';
 import 'package:arraf_shop/src/routing/global_navigator.dart';
 import 'package:arraf_shop/src/services/storage_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:arraf_shop/src/shared/widgets/app_shell_scaffold.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
@@ -322,8 +323,8 @@ class _AuditSessionRoute extends StatelessWidget {
   }
 
   String _resolveDeviceLabel({required bool isOwner, String? employeeName}) {
-    if (isOwner) return 'Owner device';
+    if (isOwner) return 'device.owner'.tr();
     if (employeeName != null && employeeName.isNotEmpty) return employeeName;
-    return 'Mobile';
+    return 'device.mobile'.tr();
   }
 }

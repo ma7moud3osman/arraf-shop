@@ -16,7 +16,27 @@
     "home_subtitle": "Live karat / unit prices, edited by admins."
   },
   "errors": {
-    "generic": "Something went wrong. Please try again."
+    "generic": "Something went wrong. Please try again.",
+    "try_again": "Try again",
+    "unexpected": "An unexpected error occurred",
+    "no_internet": "No internet connection. Please check your connection and try again.",
+    "request_failed": "Request failed ({status}).",
+    "unauthenticated": "You are not signed in.",
+    "forbidden": "You do not have permission to do that.",
+    "not_found": "Not found.",
+    "conflict": "Conflict — please try again.",
+    "validation": "Some of the information you entered is invalid.",
+    "server": "Server error. Please try again."
+  },
+  "version_update": {
+    "title": "New version available",
+    "content": "Would you like to update your application?",
+    "update": "UPDATE",
+    "later": "UPDATE LATER"
+  },
+  "device": {
+    "owner": "Owner device",
+    "mobile": "Mobile"
   },
   "settings": {
     "title": "Settings",

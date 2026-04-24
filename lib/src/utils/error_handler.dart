@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class AppErrorHandler {
   /// Coerces any throwable into a user-facing error string.
@@ -28,7 +29,7 @@ class AppErrorHandler {
         case DioExceptionType.connectionTimeout:
         case DioExceptionType.sendTimeout:
         case DioExceptionType.receiveTimeout:
-          return 'No internet connection. Please check your connection and try again.';
+          return 'errors.no_internet'.tr();
         default:
           break;
       }
@@ -41,7 +42,7 @@ class AppErrorHandler {
       if (str is String && str.isNotEmpty) return str;
     } catch (_) {}
 
-    return 'An unexpected error occurred';
+    return 'errors.unexpected'.tr();
   }
 
   static String? _extractFromDioResponse(DioException e) {
@@ -66,13 +67,13 @@ class AppErrorHandler {
 
   static String _fallbackForStatus(int status) {
     return switch (status) {
-      401 => 'You are not signed in.',
-      403 => 'You do not have permission to do that.',
-      404 => 'Not found.',
-      409 => 'Conflict — please try again.',
-      422 => 'Some of the information you entered is invalid.',
-      >= 500 => 'Server error. Please try again.',
-      _ => 'Request failed ($status).',
+      401 => 'errors.unauthenticated'.tr(),
+      403 => 'errors.forbidden'.tr(),
+      404 => 'errors.not_found'.tr(),
+      409 => 'errors.conflict'.tr(),
+      422 => 'errors.validation'.tr(),
+      >= 500 => 'errors.server'.tr(),
+      _ => 'errors.request_failed'.tr(namedArgs: {'status': '$status'}),
     };
   }
 }
