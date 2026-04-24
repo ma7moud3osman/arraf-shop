@@ -11,6 +11,8 @@
   "gold_price": {
     "title": "Gold price",
     "edit_action": "Edit",
+    "buy": "Buy",
+    "sell": "Sell",
     "updated_successfully": "Gold price updated.",
     "empty": "No gold price published yet.",
     "home_subtitle": "Live karat / unit prices, edited by admins.",

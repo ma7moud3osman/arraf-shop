@@ -131,6 +131,38 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
   }
 }
 
+class _PricePair extends StatelessWidget {
+  const _PricePair({
+    required this.label,
+    required this.value,
+    required this.textTheme,
+    required this.labelColor,
+  });
+
+  final String label;
+  final double value;
+  final TextTheme textTheme;
+  final Color labelColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$label:',
+          style: textTheme.bodySmall?.copyWith(color: labelColor),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          value.toStringAsFixed(2),
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        ),
+      ],
+    );
+  }
+}
+
 class _GoldPriceTile extends StatelessWidget {
   const _GoldPriceTile({required this.item});
 
@@ -177,17 +209,29 @@ class _GoldPriceTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  item.sale.toStringAsFixed(2),
-                  style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                _PricePair(
+                  label: 'gold_price.sell'.tr(),
+                  value: item.sale,
+                  textTheme: tt,
+                  labelColor: cs.onSurfaceVariant,
                 ),
-                Text(
-                  '${positive ? '+' : ''}${item.diff.toStringAsFixed(2)}',
-                  style: tt.bodySmall?.copyWith(
-                    color: positive ? Colors.green : cs.error,
-                    fontWeight: FontWeight.w600,
+                const SizedBox(height: 4),
+                _PricePair(
+                  label: 'gold_price.buy'.tr(),
+                  value: item.buy,
+                  textTheme: tt,
+                  labelColor: cs.onSurfaceVariant,
+                ),
+                if (item.diff != 0) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${positive ? '+' : ''}${item.diff.toStringAsFixed(2)}',
+                    style: tt.bodySmall?.copyWith(
+                      color: positive ? Colors.green : cs.error,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ],
