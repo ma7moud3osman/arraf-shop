@@ -141,12 +141,19 @@ class _GoldPriceTile extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final positive = item.diffType == 'positive';
+    final isAnchor = item.key == 'karat_21';
 
     return Material(
       color: cs.surfaceContainerLow,
       borderRadius: BorderRadius.circular(14),
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.all(16),
+        decoration: isAnchor
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: cs.primary, width: 1),
+              )
+            : null,
         child: Row(
           children: [
             Expanded(
