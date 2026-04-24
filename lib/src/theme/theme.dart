@@ -92,7 +92,7 @@ ThemeData _buildTheme(
   ColorScheme colorScheme,
   AppColorsExtension customColors,
 ) {
-  final textTheme = buildTextTheme();
+  final textTheme = buildTextTheme(primaryTextColor: colorScheme.onSurface);
 
   return ThemeData(
     useMaterial3: true,

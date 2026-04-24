@@ -6,7 +6,13 @@ import 'package:flutter/material.dart';
 /// ```dart
 /// Text('Hello', style: context.textTheme.titleLarge);
 /// ```
-TextTheme buildTextTheme() {
+///
+/// Pass [primaryTextColor] (typically `colorScheme.onSurface`) to ensure
+/// every text style has sufficient contrast against the surface. Without
+/// an explicit color, Flutter falls back to platform [Typography] defaults,
+/// which can render as low-contrast greys against tinted Material 3
+/// surfaces — leading to "invisible" text in light mode.
+TextTheme buildTextTheme({required Color primaryTextColor}) {
   const baseTextTheme = TextTheme(
     // ── Display ──────────────────────────────────────────────────────────────
     // Use for the largest, most impactful text on a screen.
@@ -158,5 +164,12 @@ TextTheme buildTextTheme() {
     ),
   );
 
-  return baseTextTheme;
+  // Explicitly apply the on-surface color to every style so text contrast
+  // never depends on platform [Typography] fallbacks (which can render as
+  // very low-contrast greys on Material 3 tinted surfaces).
+  return baseTextTheme.apply(
+    bodyColor: primaryTextColor,
+    displayColor: primaryTextColor,
+    decorationColor: primaryTextColor,
+  );
 }
