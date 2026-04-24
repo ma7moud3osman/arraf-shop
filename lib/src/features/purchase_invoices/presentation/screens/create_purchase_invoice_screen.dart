@@ -218,11 +218,25 @@ class _HeaderStep extends StatelessWidget {
             isDense: true,
             labelText: 'purchase_invoice.payment_method'.tr(),
           ),
-          items: const [
-            DropdownMenuItem(value: 'cash', child: Text('cash')),
-            DropdownMenuItem(value: 'card', child: Text('card')),
-            DropdownMenuItem(value: 'installment', child: Text('installment')),
-            DropdownMenuItem(value: 'mixed', child: Text('mixed')),
+          items: [
+            DropdownMenuItem(
+              value: 'cash',
+              child: Text('purchase_invoice.payment_methods.cash'.tr()),
+            ),
+            DropdownMenuItem(
+              value: 'card',
+              child: Text('purchase_invoice.payment_methods.card'.tr()),
+            ),
+            DropdownMenuItem(
+              value: 'installment',
+              child: Text(
+                'purchase_invoice.payment_methods.installment'.tr(),
+              ),
+            ),
+            DropdownMenuItem(
+              value: 'mixed',
+              child: Text('purchase_invoice.payment_methods.mixed'.tr()),
+            ),
           ],
           onChanged: provider.setPaymentMethod,
         ),

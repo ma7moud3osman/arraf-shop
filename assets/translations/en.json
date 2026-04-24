@@ -381,6 +381,12 @@
     "no_suppliers": "No suppliers yet.",
     "sale_date": "Sale date",
     "payment_method": "Payment method",
+    "payment_methods": {
+      "cash": "Cash",
+      "card": "Card",
+      "installment": "Installment",
+      "mixed": "Mixed"
+    },
     "discount": "Discount",
     "paid_amount": "Paid amount",
     "notes": "Notes",

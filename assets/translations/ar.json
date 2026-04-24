@@ -381,6 +381,12 @@
     "no_suppliers": "لا يوجد مورّدون بعد.",
     "sale_date": "تاريخ الفاتورة",
     "payment_method": "طريقة الدفع",
+    "payment_methods": {
+      "cash": "نقدي",
+      "card": "بطاقة",
+      "installment": "تقسيط",
+      "mixed": "مختلط"
+    },
     "discount": "الخصم",
     "paid_amount": "المدفوع",
     "notes": "ملاحظات",
