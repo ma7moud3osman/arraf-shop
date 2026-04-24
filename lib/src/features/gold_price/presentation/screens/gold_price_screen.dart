@@ -89,7 +89,7 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
         if (provider.snapshot == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        return _buildList(provider.snapshot!.items);
+        return _buildList(_visibleItems(provider.snapshot!.items));
       case AppStatus.failure:
         return Center(
           child: Padding(
@@ -101,13 +101,22 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
           ),
         );
       case AppStatus.success:
-        final items = provider.snapshot?.items ?? const <GoldPriceItem>[];
+        final items = _visibleItems(
+          provider.snapshot?.items ?? const <GoldPriceItem>[],
+        );
         if (items.isEmpty) {
           return Center(child: Text('gold_price.empty'.tr()));
         }
         return _buildList(items);
     }
   }
+
+  // Hide unit rows that aren't relevant to the shop's day-to-day —
+  // ounce / pound / ounce-in-USD aren't part of the 21K-anchored flow.
+  static const _hiddenKeys = {'ounce', 'pound', 'ounce_dollar'};
+
+  List<GoldPriceItem> _visibleItems(List<GoldPriceItem> items) =>
+      items.where((i) => !_hiddenKeys.contains(i.key)).toList();
 
   Widget _buildList(List<GoldPriceItem> items) {
     return ListView.separated(
