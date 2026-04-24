@@ -1,5 +1,7 @@
+import 'package:arraf_shop/src/features/employees/domain/entities/paginated.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/domain/entities/purchase_invoice.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/domain/entities/purchase_invoice_draft.dart';
+import 'package:arraf_shop/src/features/purchase_invoices/domain/entities/purchase_invoice_list_item.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/domain/entities/shop_customer.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/domain/entities/shop_item.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/domain/repositories/purchase_invoice_repository.dart';
@@ -72,5 +74,48 @@ class FakePurchaseInvoiceRepository implements PurchaseInvoiceRepository {
     lastFetchedShareUrlId = invoiceId;
     if (shareUrlFailure != null) return Future.value(Left(shareUrlFailure!));
     return Future.value(Right(shareUrl));
+  }
+
+  // ── List endpoint (owner-facing Invoices tab) ───────────────────────
+  FutureEither<Paginated<PurchaseInvoiceListItem>> Function(
+    int page,
+    int perPage,
+    String? search,
+  )?
+  listHandler;
+
+  int listCalls = 0;
+  int? lastListPage;
+  String? lastListSearch;
+
+  /// When non-null, [list] returns this failure regardless of [listHandler].
+  Failure? listFailure;
+
+  @override
+  FutureEither<Paginated<PurchaseInvoiceListItem>> list({
+    int page = 1,
+    int perPage = 20,
+    String? search,
+  }) {
+    listCalls += 1;
+    lastListPage = page;
+    lastListSearch = search;
+    if (listFailure != null) return Future.value(Left(listFailure!));
+    final h = listHandler;
+    if (h != null) return h(page, perPage, search);
+    return Future.value(
+      Right(
+        Paginated<PurchaseInvoiceListItem>(
+          items: [
+            PurchaseInvoiceListItem.fake(id: 1, invoiceNumber: 'P-001'),
+            PurchaseInvoiceListItem.fake(id: 2, invoiceNumber: 'P-002'),
+          ],
+          currentPage: page,
+          perPage: perPage,
+          total: 2,
+          lastPage: page,
+        ),
+      ),
+    );
   }
 }

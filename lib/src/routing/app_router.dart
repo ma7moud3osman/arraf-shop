@@ -11,6 +11,7 @@ import 'package:arraf_shop/src/features/gold_price/presentation/screens/gold_pri
 import 'package:arraf_shop/src/features/purchase_invoices/domain/repositories/purchase_invoice_repository.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/presentation/providers/create_purchase_invoice_provider.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/presentation/screens/create_purchase_invoice_screen.dart';
+import 'package:arraf_shop/src/features/purchase_invoices/presentation/screens/purchase_invoices_list_screen.dart';
 import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:arraf_shop/src/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:arraf_shop/src/features/auth/presentation/screens/login_screen.dart';
@@ -49,6 +50,7 @@ abstract final class AppRouteNames {
   static const employees = 'employees';
   static const goldPrice = 'goldPrice';
   static const createPurchaseInvoice = 'createPurchaseInvoice';
+  static const purchaseInvoices = 'purchaseInvoices';
 }
 
 /// Auth-gated paths. Anyone visiting these without a live session (owner
@@ -61,6 +63,7 @@ const Set<String> _authGatedPrefixes = {
   AppRoutes.payslips,
   AppRoutes.employees,
   AppRoutes.goldPrice,
+  AppRoutes.purchaseInvoices,
   AppRoutes.createPurchaseInvoice,
 };
 
@@ -100,6 +103,7 @@ final _homeNavKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _attendanceNavKey = GlobalKey<NavigatorState>(debugLabel: 'attendance');
 final _employeesNavKey = GlobalKey<NavigatorState>(debugLabel: 'employees');
 final _auditsNavKey = GlobalKey<NavigatorState>(debugLabel: 'audits');
+final _invoicesNavKey = GlobalKey<NavigatorState>(debugLabel: 'invoices');
 final _settingsNavKey = GlobalKey<NavigatorState>(debugLabel: 'settings');
 
 final GoRouter appRouter = GoRouter(
@@ -284,6 +288,20 @@ final GoRouter appRouter = GoRouter(
               path: AppRoutes.settings,
               name: AppRouteNames.settings,
               builder: (context, state) => const SettingsScreen(),
+            ),
+          ],
+        ),
+        // 5 — Purchase invoices (owner-only tab; replaces Audits in the
+        // owner's bottom nav). Appended at the end so the existing
+        // branch indices (home/attendance/employees/audits/settings)
+        // stay stable.
+        StatefulShellBranch(
+          navigatorKey: _invoicesNavKey,
+          routes: [
+            GoRoute(
+              path: AppRoutes.purchaseInvoices,
+              name: AppRouteNames.purchaseInvoices,
+              builder: (context, state) => const PurchaseInvoicesListScreen(),
             ),
           ],
         ),

@@ -125,6 +125,7 @@
     "attendance": "الحضور",
     "employees": "الموظفون",
     "audits": "الجرد",
+    "invoices": "الفواتير",
     "settings": "الإعدادات"
   },
   "employees": {
@@ -414,6 +415,13 @@
   },
   "purchase_invoice": {
     "title": "إنشاء فاتورة مشتريات",
+    "list": {
+      "title": "الفواتير",
+      "empty": "مفيش فواتير مشتريات لسه.",
+      "search_hint": "دور برقم الفاتورة أو اسم المورد",
+      "coming_soon": "تفاصيل الفاتورة قريبًا.",
+      "items_count_badge": "{} صنف"
+    },
     "home_subtitle": "سجّل مشتريات الذهب من المورّدين.",
     "step_header": "البيانات",
     "step_items": "الأصناف",

@@ -7,8 +7,12 @@ import 'package:arraf_shop/src/imports/packages_imports.dart';
 /// (each with their own [AppTopBar]) live inside the branches.
 ///
 /// The set of tabs depends on the active session role:
-///  * Owner → Home · Employees · Audits · Settings
+///  * Owner → Home · Employees · Invoices · Settings
 ///  * Employee → Home · Attendance · Audits · Settings
+///
+/// Audits stays installed for both roles — only its slot in the owner's
+/// nav is replaced by Invoices. Owners can still reach Audits via direct
+/// navigation when needed.
 class AppShellScaffold extends StatelessWidget {
   const AppShellScaffold({super.key, required this.navShell});
 
@@ -20,6 +24,7 @@ class AppShellScaffold extends StatelessWidget {
   static const int _employeesBranch = 2;
   static const int _auditsBranch = 3;
   static const int _settingsBranch = 4;
+  static const int _invoicesBranch = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -79,12 +84,20 @@ class AppShellScaffold extends StatelessWidget {
           icon: HugeIcons.strokeRoundedFingerPrintCheck,
           activeIcon: HugeIcons.strokeRoundedFingerPrintCheck,
         ),
-      const _ShellTab(
-        branchIndex: _auditsBranch,
-        labelKey: 'nav.audits',
-        icon: HugeIcons.strokeRoundedClipboard,
-        activeIcon: HugeIcons.strokeRoundedClipboard,
-      ),
+      if (isOwner)
+        const _ShellTab(
+          branchIndex: _invoicesBranch,
+          labelKey: 'nav.invoices',
+          icon: HugeIcons.strokeRoundedInvoice03,
+          activeIcon: HugeIcons.strokeRoundedInvoice03,
+        )
+      else
+        const _ShellTab(
+          branchIndex: _auditsBranch,
+          labelKey: 'nav.audits',
+          icon: HugeIcons.strokeRoundedClipboard,
+          activeIcon: HugeIcons.strokeRoundedClipboard,
+        ),
       const _ShellTab(
         branchIndex: _settingsBranch,
         labelKey: 'nav.settings',

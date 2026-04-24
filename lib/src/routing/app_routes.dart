@@ -26,7 +26,14 @@ abstract final class AppRoutes {
   // ── Gold price (read for everyone, edit for admin) ───────
   static const String goldPrice = '/gold-price';
 
-  // ── Purchase invoices (admin-only create flow) ───────────
+  // ── Purchase invoices ────────────────────────────────────
+  /// Owner-only Invoices tab — paginated list of purchase invoices.
+  /// Replaces the Audits slot in the bottom nav for owners; employees
+  /// keep Audits in their nav.
+  static const String purchaseInvoices = '/purchase-invoices';
+
+  /// Admin-only create-invoice wizard. Lives outside the shell so it
+  /// pushes over the bottom nav.
   static const String createPurchaseInvoice = '/purchase-invoices/create';
 
   // ── Audits ───────────────────────────────────────────────

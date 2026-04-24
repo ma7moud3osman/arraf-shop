@@ -1,6 +1,8 @@
 import '../../../../utils/typedefs.dart';
+import '../../../employees/domain/entities/paginated.dart';
 import '../entities/purchase_invoice.dart';
 import '../entities/purchase_invoice_draft.dart';
+import '../entities/purchase_invoice_list_item.dart';
 
 /// Top-level header fields for the wizard, kept separate from [DraftItem]
 /// so the items list can be tested in isolation.
@@ -24,7 +26,7 @@ class PurchaseInvoiceDraftHeader {
   });
 }
 
-/// Write-only repository for the create-purchase-invoice flow.
+/// Repository for the purchase-invoice feature (create flow + owner list).
 abstract class PurchaseInvoiceRepository {
   /// `POST /api/shops/my/purchase-invoices` (multipart). Returns the
   /// hydrated invoice on 201, or a [Failure] (typically [ValidationFailure]
@@ -32,6 +34,15 @@ abstract class PurchaseInvoiceRepository {
   FutureEither<PurchaseInvoice> create({
     required PurchaseInvoiceDraftHeader header,
     required List<DraftItem> items,
+  });
+
+  /// `GET /api/shops/my/purchase-invoices` — paginated list for the
+  /// owner-facing Invoices screen. Supports an optional fuzzy [search]
+  /// across invoice number / customer name.
+  FutureEither<Paginated<PurchaseInvoiceListItem>> list({
+    int page = 1,
+    int perPage = 20,
+    String? search,
   });
 
   /// `GET /api/shops/my/purchase-invoices/{id}/share-url`. Returns a pre-signed

@@ -15,6 +15,7 @@ import '../../features/purchase_invoices/data/repositories/shop_item_repository_
 import '../../features/purchase_invoices/domain/repositories/purchase_invoice_repository.dart';
 import '../../features/purchase_invoices/domain/repositories/shop_customer_repository.dart';
 import '../../features/purchase_invoices/domain/repositories/shop_item_repository.dart';
+import '../../features/purchase_invoices/presentation/providers/purchase_invoices_list_provider.dart';
 import '../../features/purchase_invoices/presentation/providers/shop_customer_picker_provider.dart';
 import '../../features/purchase_invoices/presentation/providers/shop_item_picker_provider.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -143,6 +144,15 @@ class StateWrapper extends StatelessWidget {
           create:
               (ctx) => ShopItemPickerProvider(
                 repository: ctx.read<ShopItemRepository>(),
+              ),
+        ),
+
+        // ── Owner-facing purchase invoices list (separate from the
+        // create wizard's route-scoped provider) ─────────────────────
+        ChangeNotifierProvider(
+          create:
+              (ctx) => PurchaseInvoicesListProvider(
+                repository: ctx.read<PurchaseInvoiceRepository>(),
               ),
         ),
 

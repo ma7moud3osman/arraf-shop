@@ -3,9 +3,12 @@ import 'package:intl/intl.dart';
 
 import '../../../../config/app_config.dart';
 import '../../../../utils/typedefs.dart';
+import '../../../employees/domain/entities/paginated.dart';
 import '../../domain/entities/purchase_invoice.dart';
 import '../../domain/entities/purchase_invoice_draft.dart';
+import '../../domain/entities/purchase_invoice_list_item.dart';
 import '../../domain/repositories/purchase_invoice_repository.dart';
+import '../models/purchase_invoice_list_item_model.dart';
 import '../models/purchase_invoice_model.dart';
 import '_dio_failure_mapper.dart';
 
@@ -38,6 +41,66 @@ class PurchaseInvoiceRepositoryImpl implements PurchaseInvoiceRepository {
       }
       return PurchaseInvoiceModel.fromJson(Map<String, dynamic>.from(data));
     });
+  }
+
+  @override
+  FutureEither<Paginated<PurchaseInvoiceListItem>> list({
+    int page = 1,
+    int perPage = 20,
+    String? search,
+  }) {
+    return runDio<Paginated<PurchaseInvoiceListItem>>(
+      tag: 'PurchaseInvoiceList',
+      () async {
+        final response = await _dio.get<dynamic>(
+          'shops/my/purchase-invoices',
+          queryParameters: {
+            'page': page,
+            'per_page': perPage,
+            if (search != null && search.isNotEmpty) 'search': search,
+          },
+        );
+
+        final body = response.data;
+        final envelope =
+            body is Map<String, dynamic> ? body : const <String, dynamic>{};
+        final raw = envelope['data'];
+        final list = raw is List ? raw : const <dynamic>[];
+        final items = list
+            .whereType<Map<dynamic, dynamic>>()
+            .map(
+              (m) => PurchaseInvoiceListItemModel.fromJson(
+                Map<String, dynamic>.from(m),
+              ),
+            )
+            .toList(growable: false);
+
+        final meta = envelope['meta'];
+        if (meta is Map<String, dynamic>) {
+          return Paginated<PurchaseInvoiceListItem>(
+            items: items,
+            currentPage: _intFrom(meta['current_page']) ?? page,
+            perPage: _intFrom(meta['per_page']) ?? perPage,
+            total: _intFrom(meta['total']) ?? items.length,
+            lastPage: _intFrom(meta['last_page']) ?? page,
+          );
+        }
+        return Paginated<PurchaseInvoiceListItem>(
+          items: items,
+          currentPage: page,
+          perPage: perPage,
+          total: items.length,
+          lastPage: page,
+        );
+      },
+    );
+  }
+
+  int? _intFrom(Object? v) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v);
+    return null;
   }
 
   @override

@@ -125,6 +125,7 @@
     "attendance": "Attendance",
     "employees": "Employees",
     "audits": "Audits",
+    "invoices": "Invoices",
     "settings": "Settings"
   },
   "employees": {
@@ -414,6 +415,13 @@
   },
   "purchase_invoice": {
     "title": "Create purchase invoice",
+    "list": {
+      "title": "Invoices",
+      "empty": "No purchase invoices yet.",
+      "search_hint": "Search by invoice number or supplier",
+      "coming_soon": "Invoice details coming soon.",
+      "items_count_badge": "{} items"
+    },
     "home_subtitle": "Record gold purchases from your suppliers.",
     "step_header": "Header",
     "step_items": "Items",
