@@ -49,7 +49,6 @@ class PurchaseInvoiceModel extends PurchaseInvoice {
     super.paymentMethod,
     super.notes,
     super.saleDate,
-    super.supplierName,
     super.pdfShareUrl,
   });
 
@@ -77,7 +76,6 @@ class PurchaseInvoiceModel extends PurchaseInvoice {
       paymentMethod: json['payment_method'] as String?,
       notes: json['notes'] as String?,
       saleDate: parseDateTime(json['sale_date']),
-      supplierName: json['supplier_name'] as String?,
       pdfShareUrl: json['pdf_share_url'] as String?,
       items: items,
     );

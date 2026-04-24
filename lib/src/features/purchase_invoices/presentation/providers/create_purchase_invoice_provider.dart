@@ -25,9 +25,6 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
   ShopCustomer? _supplier;
   ShopCustomer? get supplier => _supplier;
 
-  String? _supplierName;
-  String? get supplierName => _supplierName;
-
   int? _shopEmployeeId;
   int? get shopEmployeeId => _shopEmployeeId;
 
@@ -68,12 +65,6 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
   // ── Header mutators ───────────────────────────────────────────────────
   void setSupplier(ShopCustomer? value) {
     _supplier = value;
-    _safeNotify();
-  }
-
-  void setSupplierName(String? value) {
-    _supplierName =
-        (value == null || value.trim().isEmpty) ? null : value.trim();
     _safeNotify();
   }
 
@@ -231,7 +222,6 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
 
     final header = PurchaseInvoiceDraftHeader(
       shopCustomerId: _supplier?.id,
-      supplierName: _supplierName,
       shopEmployeeId: _shopEmployeeId,
       discount: _discount,
       paidAmount: _paidAmount,

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
-    'PurchaseInvoiceModel.fromJson parses supplier_name + pdf_share_url',
+    'PurchaseInvoiceModel.fromJson parses pdf_share_url',
     () {
       final json = <String, dynamic>{
         'id': 42,
@@ -13,7 +13,6 @@ void main() {
         'discount': '0.00',
         'paid_amount': '5000.00',
         'payment_method': 'cash',
-        'supplier_name': 'El-Sayed',
         'pdf_share_url': 'https://share.example/inv/42?signature=xyz',
         'sale_date': '2026-04-24',
         'items': const <Map<String, dynamic>>[],
@@ -22,7 +21,6 @@ void main() {
       final invoice = PurchaseInvoiceModel.fromJson(json);
 
       expect(invoice.id, 42);
-      expect(invoice.supplierName, 'El-Sayed');
       expect(
         invoice.pdfShareUrl,
         'https://share.example/inv/42?signature=xyz',

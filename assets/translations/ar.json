@@ -356,7 +356,6 @@
     "step_items": "الأصناف",
     "step_review": "المراجعة",
     "supplier": "المورّد",
-    "supplier_name_fallback": "اسم المورّد (يدوي)",
     "pick_supplier": "اختر المورّد",
     "search_supplier": "بحث بالاسم أو الهاتف",
     "no_suppliers": "لا يوجد مورّدون بعد.",

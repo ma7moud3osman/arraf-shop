@@ -356,7 +356,6 @@
     "step_items": "Items",
     "step_review": "Review",
     "supplier": "Supplier",
-    "supplier_name_fallback": "Supplier name (manual)",
     "pick_supplier": "Pick supplier",
     "search_supplier": "Search by name or phone",
     "no_suppliers": "No suppliers yet.",

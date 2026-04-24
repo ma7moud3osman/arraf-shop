@@ -18,7 +18,6 @@ void main() {
 
       final header = PurchaseInvoiceDraftHeader(
         shopCustomerId: 7,
-        supplierName: 'El-Sayed',
         paymentMethod: 'cash',
         discount: 50,
         paidAmount: 1000,
@@ -47,7 +46,6 @@ void main() {
         fieldKeys,
         containsAll(<String>[
           'shop_customer_id',
-          'supplier_name',
           'discount',
           'paid_amount',
           'payment_method',

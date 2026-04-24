@@ -13,7 +13,6 @@ class PurchaseInvoice extends Equatable {
   final String? paymentMethod;
   final String? notes;
   final DateTime? saleDate;
-  final String? supplierName;
   final String? pdfShareUrl;
   final List<PurchaseInvoiceItem> items;
 
@@ -28,7 +27,6 @@ class PurchaseInvoice extends Equatable {
     this.paymentMethod,
     this.notes,
     this.saleDate,
-    this.supplierName,
     this.pdfShareUrl,
   });
 
@@ -41,7 +39,6 @@ class PurchaseInvoice extends Equatable {
       discount: 0,
       paidAmount: 5000,
       paymentMethod: 'cash',
-      supplierName: 'Acme Gold',
       pdfShareUrl: pdfShareUrl,
       items: [PurchaseInvoiceItem.fake()],
     );
@@ -56,7 +53,6 @@ class PurchaseInvoice extends Equatable {
     discount,
     paidAmount,
     paymentMethod,
-    supplierName,
     pdfShareUrl,
     items,
   ];

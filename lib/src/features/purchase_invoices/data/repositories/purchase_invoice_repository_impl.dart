@@ -86,7 +86,6 @@ FormData buildFormData({
   }
 
   putString('shop_customer_id', header.shopCustomerId);
-  putString('supplier_name', header.supplierName);
   putString('shop_employee_id', header.shopEmployeeId);
   putString('discount', header.discount);
   putString('paid_amount', header.paidAmount);

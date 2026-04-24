@@ -24,14 +24,12 @@ class _CreatePurchaseInvoiceScreenState
   int _step = 0;
 
   // Header text controllers (values flow into the provider on change).
-  final _supplierName = TextEditingController();
   final _discount = TextEditingController();
   final _paid = TextEditingController();
   final _notes = TextEditingController();
 
   @override
   void dispose() {
-    _supplierName.dispose();
     _discount.dispose();
     _paid.dispose();
     _notes.dispose();
@@ -140,7 +138,6 @@ class _CreatePurchaseInvoiceScreenState
             title: Text('purchase_invoice.step_header'.tr()),
             isActive: _step >= 0,
             content: _HeaderStep(
-              supplierName: _supplierName,
               discount: _discount,
               paid: _paid,
               notes: _notes,
@@ -166,7 +163,6 @@ class _CreatePurchaseInvoiceScreenState
 
 class _HeaderStep extends StatelessWidget {
   const _HeaderStep({
-    required this.supplierName,
     required this.discount,
     required this.paid,
     required this.notes,
@@ -174,7 +170,6 @@ class _HeaderStep extends StatelessWidget {
     required this.onPickSaleDate,
   });
 
-  final TextEditingController supplierName;
   final TextEditingController discount;
   final TextEditingController paid;
   final TextEditingController notes;
@@ -200,12 +195,6 @@ class _HeaderStep extends StatelessWidget {
             ),
             child: Text(supplier?.name ?? 'purchase_invoice.tap_to_pick'.tr()),
           ),
-        ),
-        SizedBox(height: 12.h),
-        AppTextField(
-          controller: supplierName,
-          label: 'purchase_invoice.supplier_name_fallback'.tr(),
-          onChanged: provider.setSupplierName,
         ),
         SizedBox(height: 12.h),
         InkWell(
@@ -331,7 +320,7 @@ class _ReviewStep extends StatelessWidget {
         SizedBox(height: 12.h),
         _SummaryRow(
           label: 'purchase_invoice.supplier'.tr(),
-          value: provider.supplier?.name ?? provider.supplierName ?? '—',
+          value: provider.supplier?.name ?? '—',
         ),
         _SummaryRow(
           label: 'purchase_invoice.item_count'.tr(),

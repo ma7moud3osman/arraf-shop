@@ -6,7 +6,6 @@ import '../entities/purchase_invoice_draft.dart';
 /// so the items list can be tested in isolation.
 class PurchaseInvoiceDraftHeader {
   final int? shopCustomerId;
-  final String? supplierName;
   final int? shopEmployeeId;
   final double? discount;
   final double? paidAmount;
@@ -16,7 +15,6 @@ class PurchaseInvoiceDraftHeader {
 
   const PurchaseInvoiceDraftHeader({
     this.shopCustomerId,
-    this.supplierName,
     this.shopEmployeeId,
     this.discount,
     this.paidAmount,
