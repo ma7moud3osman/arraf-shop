@@ -2,6 +2,7 @@ import 'package:arraf_shop/src/features/audits/data/audit_failures.dart';
 import 'package:arraf_shop/src/features/audits/domain/entities/audit_scan.dart';
 import 'package:arraf_shop/src/features/audits/domain/entities/audit_scan_result.dart';
 import 'package:arraf_shop/src/features/audits/domain/entities/audit_status.dart';
+import 'package:arraf_shop/src/features/audits/domain/realtime/audit_realtime.dart';
 import 'package:arraf_shop/src/features/audits/domain/repositories/audit_repository.dart';
 import 'package:arraf_shop/src/features/audits/presentation/providers/audit_session_provider.dart';
 import 'package:arraf_shop/src/shared/enums/app_status.dart';
@@ -384,6 +385,71 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(provider.feed, hasLength(1));
+    });
+
+    test(
+      'subscribe joins BOTH the session and shop channels (A2 multi-device fix)',
+      () {
+        final ok = provider.subscribe();
+        expect(ok, isTrue);
+        expect(realtime.subscribeCalls, 1, reason: 'private-shop-audit.{id}');
+        expect(realtime.shopSubscribeCalls, 1, reason: 'private-shop-audits.{shopId}');
+        expect(realtime.lastSubscribedShopId, 7);
+      },
+    );
+
+    test(
+      'shop event for the current uuid patches the session header counts',
+      () async {
+        provider.subscribe();
+
+        realtime.emitShop(
+          AuditSessionEvent(
+            uuid: 'uuid-1',
+            shopId: 7,
+            status: 'in_progress',
+            expectedCount: 100,
+            scannedCount: 87,
+            expectedWeightGrams: 1000,
+            scannedWeightGrams: 870,
+            progressPercent: 87,
+            startedAt: DateTime(2026, 4, 22, 10),
+            completedAt: null,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          provider.session?.scannedCount,
+          87,
+          reason: 'session.updated must drive header counts in real time',
+        );
+        expect(provider.session?.scannedWeightGrams, 870);
+        expect(provider.session?.progressPercent, 87);
+      },
+    );
+
+    test('shop event for a different uuid is ignored', () async {
+      provider.subscribe();
+
+      realtime.emitShop(
+        AuditSessionEvent(
+          uuid: 'someone-else',
+          shopId: 7,
+          status: 'completed',
+          expectedCount: 0,
+          scannedCount: 999,
+          expectedWeightGrams: 0,
+          scannedWeightGrams: 0,
+          progressPercent: 100,
+          startedAt: null,
+          completedAt: DateTime(2026, 4, 22, 11),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(provider.session?.scannedCount, 0,
+          reason: 'must only react to events for our uuid');
     });
 
     test('unsubscribe cancels and tells the realtime service', () async {

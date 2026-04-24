@@ -1,3 +1,5 @@
+import 'package:arraf_shop/src/features/audits/data/audit_failures.dart';
+import 'package:arraf_shop/src/features/audits/domain/entities/audit_status.dart';
 import 'package:arraf_shop/src/features/audits/domain/repositories/audit_repository.dart';
 import 'package:arraf_shop/src/features/audits/presentation/providers/audits_list_provider.dart';
 import 'package:arraf_shop/src/shared/enums/app_status.dart';
@@ -113,7 +115,10 @@ void main() {
       await provider.load();
 
       final created = makeSession(uuid: 'brand-new', notes: 'Q2');
-      repo.startHandler = ({String? notes}) async => Right(created);
+      repo.startHandler = ({
+        String? notes,
+        List<int> participantEmployeeIds = const [],
+      }) async => Right(created);
 
       await provider.startNew(notes: 'Q2');
 
@@ -125,8 +130,10 @@ void main() {
   );
 
   test('consumeLastStarted returns-and-clears exactly once', () async {
-    repo.startHandler =
-        ({String? notes}) async => Right(makeSession(uuid: 'x'));
+    repo.startHandler = ({
+      String? notes,
+      List<int> participantEmployeeIds = const [],
+    }) async => Right(makeSession(uuid: 'x'));
     await provider.startNew();
 
     expect(provider.consumeLastStarted()?.uuid, 'x');
@@ -149,8 +156,10 @@ void main() {
           );
       await provider.load();
 
-      repo.startHandler =
-          ({String? notes}) async => const Left(ServerFailure('boom'));
+      repo.startHandler = ({
+        String? notes,
+        List<int> participantEmployeeIds = const [],
+      }) async => const Left(ServerFailure('boom'));
 
       await provider.startNew(notes: 'x');
 
@@ -160,4 +169,75 @@ void main() {
       expect(provider.lastStarted, isNull);
     },
   );
+
+  test('startNew forwards participant ids to the repository', () async {
+    await provider.startNew(participantEmployeeIds: const [3, 7, 11]);
+    expect(repo.lastStartedParticipants, [3, 7, 11]);
+  });
+
+  test(
+    'startNew: 422 with empty errors map is classified as already_active',
+    () async {
+      repo.startHandler = ({
+        String? notes,
+        List<int> participantEmployeeIds = const [],
+      }) async => const Left(ValidationFailure('localized server message'));
+
+      await provider.startNew(participantEmployeeIds: const [1]);
+
+      expect(provider.startStatus, AppStatus.failure);
+      expect(provider.startErrorKey, 'audit_session.already_active');
+    },
+  );
+
+  test('startNew: 422 with field errors is NOT classified as already_active',
+      () async {
+    repo.startHandler = ({
+      String? notes,
+      List<int> participantEmployeeIds = const [],
+    }) async => const Left(
+          ValidationFailure(
+            'invalid',
+            errors: {
+              'participant_employee_ids.0': ['does not belong to this shop'],
+            },
+          ),
+        );
+
+    await provider.startNew(participantEmployeeIds: const [99]);
+
+    expect(provider.startStatus, AppStatus.failure);
+    expect(provider.startErrorKey, isNull);
+  });
+
+  test('hasActiveSession reflects in-progress sessions in the list', () async {
+    repo.listHandler = ({int page = 1, String? status}) async => Right(
+          Paginated(
+            items: [
+              makeSession(uuid: 'a', status: AuditStatus.completed),
+              makeSession(uuid: 'b', status: AuditStatus.inProgress),
+            ],
+            currentPage: 1,
+            perPage: 20,
+            total: 2,
+            lastPage: 1,
+          ),
+        );
+    await provider.load();
+    expect(provider.hasActiveSession, isTrue);
+  });
+
+  test('hasActiveSession is false when all sessions are completed', () async {
+    repo.listHandler = ({int page = 1, String? status}) async => Right(
+          Paginated(
+            items: [makeSession(uuid: 'a', status: AuditStatus.completed)],
+            currentPage: 1,
+            perPage: 20,
+            total: 1,
+            lastPage: 1,
+          ),
+        );
+    await provider.load();
+    expect(provider.hasActiveSession, isFalse);
+  });
 }

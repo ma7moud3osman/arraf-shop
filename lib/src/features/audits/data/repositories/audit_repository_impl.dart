@@ -40,11 +40,17 @@ class AuditRepositoryImpl implements AuditRepository {
   }
 
   @override
-  FutureEither<AuditSession> start({String? notes}) {
+  FutureEither<AuditSession> start({
+    String? notes,
+    List<int> participantEmployeeIds = const [],
+  }) {
     return _run(() async {
       final response = await _dio.post<dynamic>(
         _basePath,
-        data: {if (notes != null) 'notes': notes},
+        data: {
+          if (notes != null) 'notes': notes,
+          'participant_employee_ids': participantEmployeeIds,
+        },
       );
       return AuditSessionModel.fromJson(_unwrapData(response.data));
     });

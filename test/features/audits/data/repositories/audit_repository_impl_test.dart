@@ -48,7 +48,10 @@ void main() {
 
         expect(captured?.method, 'POST');
         expect(captured?.path, 'shops/my/audits');
-        expect(captured?.data, {'notes': 'Q2 audit'});
+        expect(captured?.data, {
+          'notes': 'Q2 audit',
+          'participant_employee_ids': const <int>[],
+        });
       });
 
       test('omits notes from the body when null', () async {
@@ -65,7 +68,32 @@ void main() {
 
         await AuditRepositoryImpl(dio: dio).start();
 
-        expect(captured?.data, <String, dynamic>{});
+        expect(captured?.data, <String, dynamic>{
+          'participant_employee_ids': <int>[],
+        });
+      });
+
+      test('forwards participant_employee_ids', () async {
+        RequestOptions? captured;
+        final dio = _stubbedDio(
+          onRequest: (options) {
+            captured = options;
+            return _jsonResponse(
+              statusCode: 201,
+              body: _envelope(_sessionJson),
+            );
+          },
+        );
+
+        await AuditRepositoryImpl(dio: dio).start(
+          notes: 'Q3',
+          participantEmployeeIds: const [3, 7, 11],
+        );
+
+        expect(
+          captured?.data,
+          {'notes': 'Q3', 'participant_employee_ids': [3, 7, 11]},
+        );
       });
     });
 

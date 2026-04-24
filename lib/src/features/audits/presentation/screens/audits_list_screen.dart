@@ -15,7 +15,7 @@ import '../widgets/audit_session_card.dart';
 import '../widgets/start_audit_session_dialog.dart';
 
 /// Paginated list of audit sessions with pull-to-refresh and a FAB
-/// that starts a new session (owner-only).
+/// that starts a new session (admin-only).
 ///
 /// Navigation is delegated: [onOpen] is invoked with the target session's
 /// uuid when a card is tapped or a newly-started session is ready.
@@ -23,14 +23,17 @@ class AuditsListScreen extends StatefulWidget {
   const AuditsListScreen({
     super.key,
     required this.onOpen,
-    required this.isOwner,
+    required this.isAdmin,
   });
 
   /// Invoked when a session is selected (tap on a card, or after starting a
   /// new one). Caller inspects the session status to choose between the
   /// live session screen (in-progress) and the summary (completed).
   final ValueChanged<AuditSession> onOpen;
-  final bool isOwner;
+
+  /// Server-enforced single-active-session is the source of truth; this
+  /// flag only controls which clients see the "New session" CTA at all.
+  final bool isAdmin;
 
   @override
   State<AuditsListScreen> createState() => _AuditsListScreenState();
@@ -68,19 +71,22 @@ class _AuditsListScreenState extends State<AuditsListScreen> {
   }
 
   Future<void> _startNew() async {
-    final title = await StartAuditSessionDialog.show(context);
-    if (!mounted || title == null) return;
+    final result = await StartAuditSessionDialog.show(context);
+    if (!mounted || result == null) return;
 
     final provider = context.read<AuditsListProvider>();
-    await provider.startNew(notes: title.isEmpty ? null : title);
+    await provider.startNew(
+      notes: result.title.isEmpty ? null : result.title,
+      participantEmployeeIds: result.participantIds,
+    );
     if (!mounted) return;
 
     if (provider.startStatus == AppStatus.failure) {
-      showToast(
-        context,
-        message: provider.errorMessage ?? 'audits.list.start_failed'.tr(),
-        status: 'error',
-      );
+      final key = provider.startErrorKey;
+      final friendly = key == 'audit_session.already_active'
+          ? 'audits.list.already_active'.tr()
+          : (provider.errorMessage ?? 'audits.list.start_failed'.tr());
+      showToast(context, message: friendly, status: 'error');
       return;
     }
 
@@ -98,7 +104,7 @@ class _AuditsListScreenState extends State<AuditsListScreen> {
       appBar: AppTopBar(title: 'audits.list.title'.tr()),
       body: _buildBody(provider),
       floatingActionButton:
-          widget.isOwner
+          (widget.isAdmin && !provider.hasActiveSession)
               ? FloatingActionButton.extended(
                 onPressed:
                     provider.startStatus == AppStatus.loading

@@ -348,5 +348,53 @@
       "pdf_unavailable": "ملف PDF غير متاح لهذه القسيمة.",
       "open_failed": "تعذّر فتح القسيمة."
     }
+  },
+  "purchase_invoice": {
+    "title": "إنشاء فاتورة مشتريات",
+    "home_subtitle": "سجّل مشتريات الذهب من المورّدين.",
+    "step_header": "البيانات",
+    "step_items": "الأصناف",
+    "step_review": "المراجعة",
+    "supplier": "المورّد",
+    "supplier_name_fallback": "اسم المورّد (يدوي)",
+    "pick_supplier": "اختر المورّد",
+    "search_supplier": "بحث بالاسم أو الهاتف",
+    "no_suppliers": "لا يوجد مورّدون بعد.",
+    "sale_date": "تاريخ الفاتورة",
+    "payment_method": "طريقة الدفع",
+    "discount": "الخصم",
+    "paid_amount": "المدفوع",
+    "notes": "ملاحظات",
+    "tap_to_pick": "اضغط للاختيار",
+    "shop_item": "صنف الكتالوج",
+    "pick_item": "اختر صنف الكتالوج",
+    "search_item": "بحث عن صنف",
+    "no_items": "لا توجد أصناف في الكتالوج بعد.",
+    "stock_label": "متوفر: {}",
+    "weight_total": "الوزن الإجمالي (جم)",
+    "quantity": "الكمية",
+    "manufacturer_fee": "أجرة الصنعة (للقطعة)",
+    "manufacturer_fee_total": "إجمالي أجرة الصنعة",
+    "item_n": "الصنف {}",
+    "piece_n": "القطعة {}",
+    "pieces_label": "{} قطعة",
+    "piece_weight_hint": "وزن مخصص (اختياري)",
+    "add_item": "إضافة صنف",
+    "submit": "إنشاء الفاتورة",
+    "review_intro": "راجِع بيانات الفاتورة. سيقوم الخادم بحساب الإجماليات النهائية بسعر الذهب الحالي.",
+    "review_warning": "بعض الأصناف تحتاج إلى إكمال (الصنف أو الوزن أو صور القطع).",
+    "item_count": "عدد الأصناف",
+    "piece_count": "عدد القطع",
+    "image": {
+      "camera": "التقاط صورة",
+      "gallery": "اختيار من المعرض"
+    },
+    "created": {
+      "title": "تم إنشاء الفاتورة",
+      "heading": "تم إنشاء الفاتورة {}.",
+      "subtitle": "تم تسجيل {} صنف.",
+      "share": "مشاركة مع المورّد",
+      "done": "تم"
+    }
   }
 }

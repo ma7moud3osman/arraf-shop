@@ -46,7 +46,7 @@ void main() {
         harness(
           list: provider,
           child: AuditsListScreen(
-            isOwner: true,
+            isAdmin: true,
             onOpen: (session) => opened = session.uuid,
           ),
         ),
@@ -90,7 +90,7 @@ void main() {
       await tester.pumpWidget(
         harness(
           list: provider,
-          child: AuditsListScreen(isOwner: true, onOpen: (_) {}),
+          child: AuditsListScreen(isAdmin: true, onOpen: (_) {}),
         ),
       );
       await tester.pump();
@@ -110,7 +110,7 @@ void main() {
       await tester.pumpWidget(
         harness(
           list: provider,
-          child: AuditsListScreen(isOwner: false, onOpen: (_) {}),
+          child: AuditsListScreen(isAdmin: false, onOpen: (_) {}),
         ),
       );
       await tester.pump();

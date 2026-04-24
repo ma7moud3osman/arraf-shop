@@ -40,7 +40,16 @@ class Paginated<T> {
 abstract class AuditRepository {
   FutureEither<Paginated<AuditSession>> list({int page = 1, String? status});
 
-  FutureEither<AuditSession> start({String? notes});
+  /// Start a new audit session.
+  ///
+  /// [participantEmployeeIds] is the list of `shop_employee` ids permitted
+  /// to scan/view the session. The backend rejects empty arrays for
+  /// non-owner-only sessions and 422s with `messages.audit_session.already_active`
+  /// when there's already an in-progress session for this shop.
+  FutureEither<AuditSession> start({
+    String? notes,
+    List<int> participantEmployeeIds = const [],
+  });
 
   FutureEither<SessionWithScans> show(String uuid);
 

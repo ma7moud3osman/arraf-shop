@@ -58,8 +58,12 @@ void main() {
 
       expect(find.byType(BarcodeScannerView), findsOneWidget);
       expect(find.byType(AuditProgressCard), findsOneWidget);
-      // Complete button shown for owner on an in-progress session.
-      expect(find.text('audits.session.complete'), findsOneWidget);
+      // Complete action shown for owner on an in-progress session.
+      // Now rendered as an icon-only button with the label as a tooltip.
+      expect(
+        find.byTooltip('audits.session.complete'),
+        findsOneWidget,
+      );
       // Feed starts empty → empty state copy visible.
       expect(find.textContaining('audits.session.feed_empty'), findsOneWidget);
 
@@ -88,7 +92,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('audits.session.complete'), findsNothing);
+      expect(find.byTooltip('audits.session.complete'), findsNothing);
     });
 
     testWidgets('renders feed rows after a realtime scan arrives', (

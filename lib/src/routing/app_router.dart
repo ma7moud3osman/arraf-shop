@@ -8,6 +8,9 @@ import 'package:arraf_shop/src/features/audits/presentation/screens/audit_sessio
 import 'package:arraf_shop/src/features/audits/presentation/screens/audit_summary_screen.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audits_list_screen.dart';
 import 'package:arraf_shop/src/features/gold_price/presentation/screens/gold_price_screen.dart';
+import 'package:arraf_shop/src/features/purchase_invoices/domain/repositories/purchase_invoice_repository.dart';
+import 'package:arraf_shop/src/features/purchase_invoices/presentation/providers/create_purchase_invoice_provider.dart';
+import 'package:arraf_shop/src/features/purchase_invoices/presentation/screens/create_purchase_invoice_screen.dart';
 import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:arraf_shop/src/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:arraf_shop/src/features/auth/presentation/screens/login_screen.dart';
@@ -44,6 +47,7 @@ abstract final class AppRouteNames {
   static const payslips = 'payslips';
   static const employees = 'employees';
   static const goldPrice = 'goldPrice';
+  static const createPurchaseInvoice = 'createPurchaseInvoice';
 }
 
 /// Auth-gated paths. Anyone visiting these without a live session (owner
@@ -56,6 +60,7 @@ const Set<String> _authGatedPrefixes = {
   AppRoutes.payslips,
   AppRoutes.employees,
   AppRoutes.goldPrice,
+  AppRoutes.createPurchaseInvoice,
 };
 
 bool _isAuthGated(String location) {
@@ -158,6 +163,24 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const GoldPriceScreen(),
     ),
 
+    // ── Create Purchase Invoice (admin-only) ─────────────────────────
+    // Uses a route-scoped provider so each entry into the wizard starts
+    // with a fresh draft (otherwise re-opening would inherit the last
+    // submission's items list).
+    GoRoute(
+      path: AppRoutes.createPurchaseInvoice,
+      name: AppRouteNames.createPurchaseInvoice,
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) {
+        return ChangeNotifierProvider(
+          create: (ctx) => CreatePurchaseInvoiceProvider(
+            repository: ctx.read<PurchaseInvoiceRepository>(),
+          ),
+          child: const CreatePurchaseInvoiceScreen(),
+        );
+      },
+    ),
+
     // ── Audit session + summary: push over the shell so the scanner
     // gets a full-screen experience without the bottom nav ───────────
     GoRoute(
@@ -229,7 +252,7 @@ final GoRouter appRouter = GoRouter(
               name: AppRouteNames.audits,
               builder:
                   (context, state) => AuditsListScreen(
-                    isOwner: context.read<AuthProvider>().isOwner,
+                    isAdmin: context.read<AuthProvider>().isAdmin,
                     onOpen: (session) async {
                       final target =
                           session.status == AuditStatus.completed

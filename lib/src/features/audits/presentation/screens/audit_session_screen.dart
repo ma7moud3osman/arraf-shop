@@ -14,6 +14,7 @@ import '../providers/audit_session_provider.dart';
 import '../widgets/audit_progress_card.dart';
 import '../widgets/audit_scan_row.dart';
 import '../widgets/barcode_scanner_view.dart';
+import '../widgets/live_summary_sheet.dart';
 
 /// Active audit session screen: scanner in the top half, live progress +
 /// last-20 scan feed in the bottom half. Owner-only "Complete" action.
@@ -169,9 +170,22 @@ class _AuditSessionScreenState extends State<AuditSessionScreen> {
       appBar: AppBar(
         title: Text('audits.session.title'.tr()),
         actions: [
+          if (provider.session != null)
+            IconButton(
+              tooltip: 'audits.live_summary.title'.tr(),
+              icon: const Icon(Icons.insights_outlined),
+              onPressed: () => LiveSummarySheet.show(
+                context,
+                uuid: provider.session!.uuid,
+              ),
+            ),
           if (widget.isOwner &&
               provider.session?.status == AuditStatus.inProgress)
-            TextButton.icon(
+            // Icon-only to keep the AppBar from overflowing on narrow
+            // viewports — a TextButton.icon was wide enough to clip the
+            // title once the live-summary action joined the row.
+            IconButton(
+              tooltip: 'audits.session.complete'.tr(),
               onPressed:
                   provider.completeStatus == AppStatus.loading
                       ? null
@@ -179,12 +193,11 @@ class _AuditSessionScreenState extends State<AuditSessionScreen> {
               icon:
                   provider.completeStatus == AppStatus.loading
                       ? const SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: 18,
+                        height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                       : const Icon(Icons.check_circle_outline),
-              label: Text('audits.session.complete'.tr()),
             ),
         ],
       ),

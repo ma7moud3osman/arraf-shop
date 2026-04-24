@@ -68,7 +68,7 @@ void main() {
     await tester.pumpWidget(
       harness(
         list: provider,
-        child: AuditsListScreen(isOwner: true, onOpen: (_) {}),
+        child: AuditsListScreen(isAdmin: true, onOpen: (_) {}),
       ),
     );
     await tester.pump();

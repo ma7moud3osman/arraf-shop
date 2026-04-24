@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../shared/enums/app_status.dart';
 import '../../../../utils/failure.dart';
+import '../../data/audit_failures.dart';
 import '../../domain/entities/audit_session.dart';
 import '../../domain/entities/audit_status.dart';
 import '../../domain/realtime/audit_realtime.dart';
@@ -90,19 +91,37 @@ class AuditsListProvider extends ChangeNotifier {
     subscribeRealtime();
   }
 
+  /// Whether any session in the list is currently in-progress. Used by the
+  /// list screen as a best-effort UX guard to hide the "New session" CTA;
+  /// the server is the source of truth and will 422 with `already_active`.
+  bool get hasActiveSession =>
+      _sessions.any((s) => s.status == AuditStatus.inProgress);
+
   /// Starts a new audit session. On success, the new session is prepended to
   /// [sessions] and stored in [lastStarted] so the caller can navigate to it.
-  Future<void> startNew({String? notes}) async {
+  ///
+  /// On a 422 with the backend's `already_active` message, sets
+  /// [startErrorKey] to `audit_session.already_active` so the UI can surface
+  /// a translated, friendly message instead of the raw server string.
+  Future<void> startNew({
+    String? notes,
+    List<int> participantEmployeeIds = const [],
+  }) async {
     _startStatus = AppStatus.loading;
     _errorMessage = null;
+    _startErrorKey = null;
     _safeNotify();
 
-    final result = await _repository.start(notes: notes);
+    final result = await _repository.start(
+      notes: notes,
+      participantEmployeeIds: participantEmployeeIds,
+    );
 
     result.fold(
       (Failure f) {
         _startStatus = AppStatus.failure;
         _errorMessage = f.message;
+        _startErrorKey = _classifyStartFailure(f);
       },
       (AuditSession session) {
         _sessions = [session, ..._sessions];
@@ -111,6 +130,25 @@ class AuditsListProvider extends ChangeNotifier {
       },
     );
     _safeNotify();
+  }
+
+  /// Stable, translation-friendly error key for the most recent [startNew]
+  /// call, or `null` when the failure has no specific mapping.
+  String? _startErrorKey;
+  String? get startErrorKey => _startErrorKey;
+
+  /// Map known backend failure shapes to stable client-side error keys.
+  ///
+  /// The backend currently surfaces `already_active` as a `RuntimeException`
+  /// turned into a 422 envelope `{message: '<localized string>'}` (no
+  /// `errors` map). We can't reliably match on the localized string, but
+  /// any 422 from the create endpoint that mentions an active session is
+  /// treated as `already_active` — the only other 422 path is a missing/
+  /// invalid participant, which has its own distinguishing error structure.
+  String? _classifyStartFailure(Failure f) {
+    if (f is! ValidationFailure) return null;
+    if (f.errors.isNotEmpty) return null; // genuine field errors
+    return 'audit_session.already_active';
   }
 
   /// Subscribe to shop-wide audit events. Safe to call multiple times.

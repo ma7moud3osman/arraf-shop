@@ -99,7 +99,14 @@ class FakeAuditRepository implements AuditRepository {
   // Callable slots so tests can inspect argument values.
   FutureEither<Paginated<AuditSession>> Function({int page, String? status})?
   listHandler;
-  FutureEither<AuditSession> Function({String? notes})? startHandler;
+  FutureEither<AuditSession> Function({
+    String? notes,
+    List<int> participantEmployeeIds,
+  })? startHandler;
+
+  // Inspection
+  List<int>? lastStartedParticipants;
+  String? lastStartedNotes;
   FutureEither<SessionWithScans> Function(String uuid)? showHandler;
   FutureEither<ScanResponse> Function({
     required String uuid,
@@ -139,9 +146,16 @@ class FakeAuditRepository implements AuditRepository {
   }
 
   @override
-  FutureEither<AuditSession> start({String? notes}) {
+  FutureEither<AuditSession> start({
+    String? notes,
+    List<int> participantEmployeeIds = const [],
+  }) {
+    lastStartedNotes = notes;
+    lastStartedParticipants = participantEmployeeIds;
     final h = startHandler;
-    if (h != null) return h(notes: notes);
+    if (h != null) {
+      return h(notes: notes, participantEmployeeIds: participantEmployeeIds);
+    }
     return Future.value(Right(makeSession(notes: notes)));
   }
 
