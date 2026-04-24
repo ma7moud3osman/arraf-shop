@@ -38,6 +38,8 @@ class CalendarDayModel extends CalendarDay {
     required super.date,
     required super.dayOfWeek,
     required super.hasAttendance,
+    super.isHoliday,
+    super.isFuture,
     super.attendance,
   });
 
@@ -47,6 +49,8 @@ class CalendarDayModel extends CalendarDay {
       date: parseDateTime(json['date']) ?? DateTime.now(),
       dayOfWeek: parseInt(json['day_of_week']),
       hasAttendance: (json['has_attendance'] as bool?) ?? false,
+      isHoliday: (json['is_holiday'] as bool?) ?? false,
+      isFuture: (json['is_future'] as bool?) ?? false,
       attendance:
           att is Map
               ? AttendanceEntryModel.fromJson(Map<String, dynamic>.from(att))
@@ -65,6 +69,11 @@ class MonthCalendarModel extends MonthCalendar {
     required super.totalWorkedMinutes,
     required super.totalLateMinutes,
     required super.days,
+    super.isFutureMonth,
+    super.isCurrentMonth,
+    super.workingDays,
+    super.workingDaysSoFar,
+    super.holidayDays,
   });
 
   factory MonthCalendarModel.fromJson(Map<String, dynamic> json) {
@@ -84,6 +93,11 @@ class MonthCalendarModel extends MonthCalendar {
       year: parseInt(json['year']),
       month: parseInt(json['month']),
       daysInMonth: parseInt(json['days_in_month']),
+      isFutureMonth: (json['is_future_month'] as bool?) ?? false,
+      isCurrentMonth: (json['is_current_month'] as bool?) ?? false,
+      workingDays: parseIntOrNull(json['working_days']) ?? 0,
+      workingDaysSoFar: parseIntOrNull(json['working_days_so_far']) ?? 0,
+      holidayDays: parseIntOrNull(json['holiday_days']) ?? 0,
       presentDays: parseInt(json['present_days']),
       absentDays: parseInt(json['absent_days']),
       totalWorkedMinutes: parseInt(json['total_worked_minutes']),

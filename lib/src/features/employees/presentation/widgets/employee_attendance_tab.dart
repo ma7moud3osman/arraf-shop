@@ -27,6 +27,7 @@ class _EmployeeAttendanceTabState extends State<EmployeeAttendanceTab> {
   }
 
   void _openDay(CalendarDay day) {
+    if (day.isFuture) return;
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: context.theme.colorScheme.surface,
@@ -69,6 +70,7 @@ class _MonthSwitcher extends StatelessWidget {
       context.locale.languageCode,
     ).format(provider.focusedMonth);
     final loading = provider.status == AppStatus.loading;
+    final isCurrent = provider.isFocusedMonthCurrent;
 
     return Row(
       children: [
@@ -90,7 +92,7 @@ class _MonthSwitcher extends StatelessWidget {
         IconButton(
           tooltip: 'employees.attendance.next_month'.tr(),
           icon: const Icon(Icons.chevron_right),
-          onPressed: loading ? null : provider.nextMonth,
+          onPressed: (loading || isCurrent) ? null : provider.nextMonth,
         ),
       ],
     );
@@ -212,19 +214,36 @@ class _SummaryChips extends StatelessWidget {
     final cs = context.theme.colorScheme;
     final hours = (calendar.totalWorkedMinutes / 60).toStringAsFixed(1);
 
+    final workingTotal = calendar.workingDaysSoFar > 0
+        ? calendar.workingDaysSoFar
+        : calendar.workingDays;
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
         _Chip(
-          label:
-              '${calendar.presentDays} ${'employees.attendance.present'.tr()}',
+          label: 'attendance.summary.present_of_working'.tr(
+            namedArgs: {
+              'present': '${calendar.presentDays}',
+              'total': '$workingTotal',
+            },
+          ),
           color: Colors.green.shade600,
         ),
         _Chip(
-          label: '${calendar.absentDays} ${'employees.attendance.absent'.tr()}',
+          label: 'attendance.summary.absent'.tr(
+            namedArgs: {'count': '${calendar.absentDays}'},
+          ),
           color: cs.error,
         ),
+        if (calendar.holidayDays > 0)
+          _Chip(
+            label: 'attendance.summary.holidays'.tr(
+              namedArgs: {'count': '${calendar.holidayDays}'},
+            ),
+            color: cs.onSurfaceVariant,
+          ),
         _Chip(
           label: '$hours ${'employees.attendance.hours_worked'.tr()}',
           color: cs.primary,
@@ -276,9 +295,71 @@ class _DayCell extends StatelessWidget {
     final cs = context.theme.colorScheme;
     final entry = day.attendance;
 
-    final (bg, fg) = _colorsFor(entry?.status, cs);
-
     final isToday = _isSameDay(day.date, DateTime.now());
+
+    if (day.isFuture) {
+      return Opacity(
+        opacity: 0.35,
+        child: Container(
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '${day.date.day}',
+            style: TextStyle(
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+              fontSize: 13.sp,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (day.isHoliday) {
+      return Material(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border:
+                  isToday ? Border.all(color: cs.primary, width: 1.5) : null,
+            ),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${day.date.day}',
+                  style: TextStyle(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13.sp,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Container(
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: cs.onSurfaceVariant,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final (bg, fg) = _colorsFor(entry?.status, cs);
 
     return Material(
       color: bg,

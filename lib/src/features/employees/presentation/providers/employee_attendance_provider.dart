@@ -29,6 +29,21 @@ class EmployeeAttendanceProvider extends ChangeNotifier {
   MonthCalendar? get calendar => _calendar;
   String? get errorMessage => _errorMessage;
 
+  /// True when the focused month is the present calendar month.
+  ///
+  /// Prefers the server-provided `is_current_month` flag and falls back to
+  /// client-side date math when no calendar is loaded yet.
+  bool get isFocusedMonthCurrent {
+    final cal = _calendar;
+    if (cal != null &&
+        cal.year == _focusedMonth.year &&
+        cal.month == _focusedMonth.month) {
+      return cal.isCurrentMonth;
+    }
+    final now = DateTime.now();
+    return _focusedMonth.year == now.year && _focusedMonth.month == now.month;
+  }
+
   /// Map keyed by `YYYY-MM-DD` for quick day-cell lookup.
   Map<String, CalendarDay> get daysByDate {
     final cal = _calendar;

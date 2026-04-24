@@ -73,7 +73,23 @@
     "sign_out": "تسجيل الخروج",
     "sign_out_confirm_title": "تسجيل الخروج؟",
     "sign_out_confirm_body": "ستحتاج لتسجيل الدخول مجدداً للمتابعة.",
-    "sign_out_confirm_action": "تسجيل الخروج"
+    "sign_out_confirm_action": "تسجيل الخروج",
+    "working_week": {
+      "title": "أيام الشغل",
+      "hint": "الأيام المختارة تكون أجازة. دوس على اليوم عشان تشيلوه أو تضيفه.",
+      "save": "حفظ",
+      "saved": "اتحفظت أيام الشغل.",
+      "failed": "مقدرناش نحفظ أيام الشغل.",
+      "weekday": {
+        "sun": "الأحد",
+        "mon": "الإثنين",
+        "tue": "الثلاثاء",
+        "wed": "الأربعاء",
+        "thu": "الخميس",
+        "fri": "الجمعة",
+        "sat": "السبت"
+      }
+    }
   },
   "onboarding": {
     "onboarding_title_1": "مخزونك\nتحت السيطرة",
@@ -311,6 +327,12 @@
   },
   "attendance": {
     "title": "الحضور",
+    "weekly_holiday": "أجازة أسبوعية",
+    "summary": {
+      "present_of_working": "{present} / {total} حاضر",
+      "holidays": "أجازات: {count}",
+      "absent": "غياب: {count}"
+    },
     "today": {
       "title": "اليوم",
       "in": "الدخول",

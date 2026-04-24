@@ -3,6 +3,7 @@ import 'package:fpdart/fpdart.dart';
 import '../../../../services/dio_service.dart';
 import '../../../../utils/failure.dart';
 import '../../../../utils/typedefs.dart';
+import '../../domain/entities/attendance_history.dart';
 import '../../domain/entities/attendance_record.dart';
 import '../../domain/repositories/attendance_repository.dart';
 import '../models/attendance_record_model.dart';
@@ -69,7 +70,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
-  FutureEither<List<AttendanceRecord>> history({
+  FutureEither<AttendanceHistory> history({
     required int year,
     required int month,
   }) async {
@@ -79,18 +80,45 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     );
     return result.flatMap((response) {
       final body = response.data as Map<String, dynamic>;
-      final raw = body['data'];
-      final list = raw is List ? raw : <dynamic>[];
-      final records =
-          list
-              .whereType<Map<dynamic, dynamic>>()
-              .map(
-                (m) => AttendanceRecordModel.fromJson(
-                  Map<String, dynamic>.from(m),
-                ),
-              )
-              .toList();
-      return right<Failure, List<AttendanceRecord>>(records);
+      final data = body['data'];
+
+      // Tolerate both the legacy list shape (records inline in `data`) and
+      // the current envelope shape ({attendances: [...], ...meta}).
+      List<dynamic> rawRecords = const [];
+      Map<String, dynamic> meta = const {};
+
+      if (data is List) {
+        rawRecords = data;
+      } else if (data is Map) {
+        meta = Map<String, dynamic>.from(data);
+        final att = meta['attendances'] ?? meta['records'];
+        if (att is List) rawRecords = att;
+      }
+
+      final records = rawRecords
+          .whereType<Map<dynamic, dynamic>>()
+          .map(
+            (m) => AttendanceRecordModel.fromJson(Map<String, dynamic>.from(m)),
+          )
+          .toList(growable: false);
+
+      final history = AttendanceHistory(
+        year: (meta['year'] as int?) ?? year,
+        month: (meta['month'] as int?) ?? month,
+        daysInMonth: (meta['days_in_month'] as int?) ?? 0,
+        isCurrentMonth: (meta['is_current_month'] as bool?) ?? false,
+        isFutureMonth: (meta['is_future_month'] as bool?) ?? false,
+        workingDays: (meta['working_days'] as int?) ?? 0,
+        workingDaysSoFar: (meta['working_days_so_far'] as int?) ?? 0,
+        holidayDays: (meta['holiday_days'] as int?) ?? 0,
+        presentDays: (meta['present_days'] as int?) ?? 0,
+        absentDays: (meta['absent_days'] as int?) ?? 0,
+        totalWorkedMinutes: (meta['total_worked_minutes'] as int?) ?? 0,
+        totalLateMinutes: (meta['total_late_minutes'] as int?) ?? 0,
+        records: records,
+      );
+
+      return right<Failure, AttendanceHistory>(history);
     });
   }
 }

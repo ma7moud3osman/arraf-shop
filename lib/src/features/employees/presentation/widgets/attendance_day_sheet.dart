@@ -45,7 +45,15 @@ class EmployeeAttendanceDaySheet extends StatelessWidget {
             style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           SizedBox(height: AppSpacing.md),
-          if (entry == null) ...[
+          if (day.isHoliday) ...[
+            Text(
+              'attendance.weekly_holiday'.tr(),
+              style: tt.titleSmall?.copyWith(
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ] else if (entry == null) ...[
             Text(
               'employees.attendance.no_record'.tr(),
               style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant),

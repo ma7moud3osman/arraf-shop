@@ -1,6 +1,7 @@
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../imports/imports.dart';
+import '../../domain/entities/attendance_history.dart';
 import '../../domain/entities/attendance_record.dart';
 import '../../domain/entities/attendance_status.dart';
 import '../providers/attendance_history_provider.dart';
@@ -160,6 +161,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               calendarFormat: _calendarFormat,
               status: history.status,
               errorMessage: history.errorMessage,
+              isCurrentMonth: history.isFocusedMonthCurrent,
+              summary: history.history,
               recordForDay: history.recordForDay,
               onDaySelected: (selected, focused) {
                 setState(() {
@@ -167,7 +170,24 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 });
                 _openDaySheet(selected, history.recordForDay(selected));
               },
-              onPageChanged: history.changeMonth,
+              onPageChanged: (focused) {
+                final firstOfFocused =
+                    DateTime(focused.year, focused.month, 1);
+                final firstOfCurrent = DateTime(
+                  history.focusedMonth.year,
+                  history.focusedMonth.month,
+                  1,
+                );
+                final now = DateTime.now();
+                final firstOfNow = DateTime(now.year, now.month, 1);
+                // Block forward navigation past the present month (the
+                // backend would just return an empty future-month payload).
+                if (firstOfFocused.isAfter(firstOfCurrent) &&
+                    firstOfFocused.isAfter(firstOfNow)) {
+                  return;
+                }
+                history.changeMonth(focused);
+              },
               onFormatChanged: (fmt) => setState(() => _calendarFormat = fmt),
             ),
           ],
@@ -361,6 +381,8 @@ class _CalendarCard extends StatelessWidget {
     required this.calendarFormat,
     required this.status,
     required this.errorMessage,
+    required this.isCurrentMonth,
+    required this.summary,
     required this.recordForDay,
     required this.onDaySelected,
     required this.onPageChanged,
@@ -372,6 +394,8 @@ class _CalendarCard extends StatelessWidget {
   final CalendarFormat calendarFormat;
   final AppStatus status;
   final String? errorMessage;
+  final bool isCurrentMonth;
+  final AttendanceHistory? summary;
   final AttendanceRecord? Function(DateTime day) recordForDay;
   final void Function(DateTime selected, DateTime focused) onDaySelected;
   final ValueChanged<DateTime> onPageChanged;
@@ -396,9 +420,15 @@ class _CalendarCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
+          if (summary != null) ...[
+            _SummaryChips(summary: summary!),
+            const SizedBox(height: 8),
+          ],
           TableCalendar<AttendanceRecord>(
             firstDay: DateTime(DateTime.now().year - 2),
-            lastDay: DateTime(DateTime.now().year + 1),
+            // Clamp at the present month — the backend won't return useful
+            // data for future months and the calendar shouldn't tease them.
+            lastDay: DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
             focusedDay: focusedMonth,
             selectedDayPredicate: (day) => isSameDay(day, selectedDay),
             calendarFormat: calendarFormat,
@@ -489,6 +519,65 @@ class _CalendarCard extends StatelessWidget {
       AttendanceStatus.absent => cs.error,
       AttendanceStatus.checkedOut => cs.primary,
     };
+  }
+}
+
+class _SummaryChips extends StatelessWidget {
+  const _SummaryChips({required this.summary});
+
+  final AttendanceHistory summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
+    final workingTotal =
+        summary.workingDaysSoFar > 0 ? summary.workingDaysSoFar : summary.workingDays;
+
+    Widget chip(String label, Color color) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: tt.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        chip(
+          'attendance.summary.present_of_working'.tr(
+            namedArgs: {
+              'present': '${summary.presentDays}',
+              'total': '$workingTotal',
+            },
+          ),
+          Colors.green.shade600,
+        ),
+        if (summary.holidayDays > 0)
+          chip(
+            'attendance.summary.holidays'.tr(
+              namedArgs: {'count': '${summary.holidayDays}'},
+            ),
+            cs.onSurfaceVariant,
+          ),
+        chip(
+          'attendance.summary.absent'.tr(
+            namedArgs: {'count': '${summary.absentDays}'},
+          ),
+          cs.error,
+        ),
+      ],
+    );
   }
 }
 

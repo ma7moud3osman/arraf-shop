@@ -3,6 +3,7 @@ import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
 
 import '../providers/settings_provider.dart';
+import '../widgets/working_week_section.dart';
 
 /// User preferences grouped as cards: account summary, language, theme,
 /// and a destructive sign-out tile. All changes persist immediately.
@@ -12,6 +13,8 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.theme.colorScheme;
+    final auth = context.watch<AuthProvider>();
+    final isAdmin = auth.isAdmin;
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -24,16 +27,22 @@ class SettingsScreen extends StatelessWidget {
             AppSpacing.md,
             AppSpacing.xl,
           ),
-          children: const [
-            _AccountCard(),
-            _SectionGap(),
-            _SectionLabel(labelKey: 'settings.preferences'),
-            _SectionTitleGap(),
-            _SettingsGroup(
+          children: [
+            const _AccountCard(),
+            const _SectionGap(),
+            const _SectionLabel(labelKey: 'settings.preferences'),
+            const _SectionTitleGap(),
+            const _SettingsGroup(
               children: [_LanguageTile(), _GroupDivider(), _ThemeTile()],
             ),
-            _SectionGap(),
-            _SignOutTile(),
+            if (isAdmin) ...[
+              const _SectionGap(),
+              const _SectionLabel(labelKey: 'settings.working_week.title'),
+              const _SectionTitleGap(),
+              const WorkingWeekSection(),
+            ],
+            const _SectionGap(),
+            const _SignOutTile(),
           ],
         ),
       ),

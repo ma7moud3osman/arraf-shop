@@ -27,7 +27,10 @@ import '../../features/gold_price/presentation/providers/gold_price_provider.dar
 import '../../features/payroll/data/repositories/payroll_repository_impl.dart';
 import '../../features/payroll/domain/repositories/payroll_repository.dart';
 import '../../features/payroll/presentation/providers/payroll_list_provider.dart';
+import '../../features/settings/data/repositories/shop_settings_repository_impl.dart';
+import '../../features/settings/domain/repositories/shop_settings_repository.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
+import '../../features/settings/presentation/providers/working_week_provider.dart';
 import '../../imports/imports.dart';
 
 /// Composes the MultiProvider that wraps the app.
@@ -66,6 +69,9 @@ class StateWrapper extends StatelessWidget {
         Provider<ShopItemRepository>(create: (_) => ShopItemRepositoryImpl()),
         Provider<PurchaseInvoiceRepository>(
           create: (_) => PurchaseInvoiceRepositoryImpl(),
+        ),
+        Provider<ShopSettingsRepository>(
+          create: (_) => ShopSettingsRepositoryImpl(),
         ),
 
         // ── Auth (single source of truth for the signed-in actor) ──────
@@ -142,6 +148,13 @@ class StateWrapper extends StatelessWidget {
 
         // ── User preferences (theme + locale) ──────────────────────────
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
+
+        // ── Shop working-week (owner-only edit) ────────────────────────
+        ChangeNotifierProvider(
+          create: (ctx) => WorkingWeekProvider(
+            repository: ctx.read<ShopSettingsRepository>(),
+          ),
+        ),
       ],
       child: child,
     );

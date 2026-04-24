@@ -45,23 +45,39 @@ class CalendarDay extends Equatable {
   final DateTime date;
   final int dayOfWeek;
   final bool hasAttendance;
+  final bool isHoliday;
+  final bool isFuture;
   final AttendanceEntry? attendance;
 
   const CalendarDay({
     required this.date,
     required this.dayOfWeek,
     required this.hasAttendance,
+    this.isHoliday = false,
+    this.isFuture = false,
     this.attendance,
   });
 
   @override
-  List<Object?> get props => [date, dayOfWeek, hasAttendance, attendance];
+  List<Object?> get props => [
+    date,
+    dayOfWeek,
+    hasAttendance,
+    isHoliday,
+    isFuture,
+    attendance,
+  ];
 }
 
 class MonthCalendar extends Equatable {
   final int year;
   final int month;
   final int daysInMonth;
+  final bool isFutureMonth;
+  final bool isCurrentMonth;
+  final int workingDays;
+  final int workingDaysSoFar;
+  final int holidayDays;
   final int presentDays;
   final int absentDays;
   final int totalWorkedMinutes;
@@ -77,6 +93,11 @@ class MonthCalendar extends Equatable {
     required this.totalWorkedMinutes,
     required this.totalLateMinutes,
     required this.days,
+    this.isFutureMonth = false,
+    this.isCurrentMonth = false,
+    this.workingDays = 0,
+    this.workingDaysSoFar = 0,
+    this.holidayDays = 0,
   });
 
   DateTime get firstDay => DateTime(year, month, 1);
@@ -101,6 +122,11 @@ class MonthCalendar extends Equatable {
       absentDays: daysInMonth,
       totalWorkedMinutes: 0,
       totalLateMinutes: 0,
+      workingDays: daysInMonth,
+      workingDaysSoFar: daysInMonth,
+      holidayDays: 0,
+      isCurrentMonth: false,
+      isFutureMonth: false,
       days: days,
     );
   }
@@ -110,6 +136,11 @@ class MonthCalendar extends Equatable {
     year,
     month,
     daysInMonth,
+    isFutureMonth,
+    isCurrentMonth,
+    workingDays,
+    workingDaysSoFar,
+    holidayDays,
     presentDays,
     absentDays,
     totalWorkedMinutes,

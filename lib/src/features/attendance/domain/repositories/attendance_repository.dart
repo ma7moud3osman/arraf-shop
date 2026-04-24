@@ -1,4 +1,5 @@
 import '../../../../utils/typedefs.dart';
+import '../entities/attendance_history.dart';
 import '../entities/attendance_record.dart';
 
 abstract class AttendanceRepository {
@@ -22,8 +23,9 @@ abstract class AttendanceRepository {
     double? accuracy,
   });
 
-  /// `GET /attendance/me?year=&month=` — records for a calendar month.
-  FutureEither<List<AttendanceRecord>> history({
+  /// `GET /attendance/me?year=&month=` — records for a calendar month plus
+  /// the summary meta (working days, holidays, etc.).
+  FutureEither<AttendanceHistory> history({
     required int year,
     required int month,
   });

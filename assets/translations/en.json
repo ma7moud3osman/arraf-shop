@@ -73,7 +73,23 @@
     "sign_out": "Sign out",
     "sign_out_confirm_title": "Sign out?",
     "sign_out_confirm_body": "You'll need to sign in again to continue.",
-    "sign_out_confirm_action": "Sign out"
+    "sign_out_confirm_action": "Sign out",
+    "working_week": {
+      "title": "Working Week",
+      "hint": "Selected days are off. Tap a day to toggle it.",
+      "save": "Save",
+      "saved": "Working week updated.",
+      "failed": "Could not save working week.",
+      "weekday": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      }
+    }
   },
   "onboarding": {
     "onboarding_title_1": "Inventory,\nUnder Your Thumb",
@@ -311,6 +327,12 @@
   },
   "attendance": {
     "title": "Attendance",
+    "weekly_holiday": "Weekly holiday",
+    "summary": {
+      "present_of_working": "{present} / {total} present",
+      "holidays": "Holidays: {count}",
+      "absent": "Absent: {count}"
+    },
     "today": {
       "title": "TODAY",
       "in": "Check-in",
