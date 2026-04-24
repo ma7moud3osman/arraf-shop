@@ -378,7 +378,17 @@
     "item_n": "Item {}",
     "piece_n": "Piece {}",
     "pieces_label": "{} piece(s)",
+    "pieces_sum_label": "Sum: {} g / {} g",
     "piece_weight_hint": "Override weight (optional)",
+    "piece_weight_required_hint": "Weight (g) — required",
+    "piece_weight_required": "Weight is required.",
+    "blocker": {
+      "no_items": "Add at least one item.",
+      "missing_item": "{} item(s) missing a catalog item.",
+      "missing_item_weight": "{} item(s) missing total weight.",
+      "missing_piece_image": "{} piece(s) missing image.",
+      "missing_piece_weight": "{} piece(s) missing weight."
+    },
     "add_item": "Add another item",
     "submit": "Create invoice",
     "review_intro": "Confirm the invoice details. The backend will compute the final totals from today's gold price.",

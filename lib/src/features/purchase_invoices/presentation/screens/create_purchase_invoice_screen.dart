@@ -118,7 +118,10 @@ class _CreatePurchaseInvoiceScreenState
                           ? 'purchase_invoice.submit'.tr()
                           : 'shared.next'.tr(),
                   onPressed:
-                      provider.status.isLoading ? null : details.onStepContinue,
+                      (provider.status.isLoading ||
+                              (isLast && !provider.itemsAreValid))
+                          ? null
+                          : details.onStepContinue,
                   isLoading: isLast && provider.status.isLoading,
                 ),
                 SizedBox(width: 8.w),
@@ -342,7 +345,7 @@ class _ReviewStep extends StatelessWidget {
           label: 'purchase_invoice.manufacturer_fee_total'.tr(),
           value: feeTotal.toStringAsFixed(2),
         ),
-        if (!provider.itemsAreValid) ...[
+        if (provider.submitBlockers.isNotEmpty) ...[
           SizedBox(height: 12.h),
           Text(
             'purchase_invoice.review_warning'.tr(),
@@ -350,6 +353,14 @@ class _ReviewStep extends StatelessWidget {
               color: context.theme.colorScheme.error,
             ),
           ),
+          SizedBox(height: 4.h),
+          for (final b in provider.submitBlockers)
+            Text(
+              '• ${'purchase_invoice.blocker.${b.key}'.tr(args: ['${b.count}'])}',
+              style: tt.bodySmall?.copyWith(
+                color: context.theme.colorScheme.error,
+              ),
+            ),
         ],
         if (provider.errorMessage != null) ...[
           SizedBox(height: 12.h),

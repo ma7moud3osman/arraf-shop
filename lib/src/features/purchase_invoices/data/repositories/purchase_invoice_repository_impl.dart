@@ -39,6 +39,29 @@ class PurchaseInvoiceRepositoryImpl implements PurchaseInvoiceRepository {
       return PurchaseInvoiceModel.fromJson(Map<String, dynamic>.from(data));
     });
   }
+
+  @override
+  FutureEither<String> fetchShareUrl(int invoiceId) {
+    return runDio<String>(tag: 'PurchaseInvoiceShareUrl', () async {
+      final response = await _dio.get<dynamic>(
+        'shops/my/purchase-invoices/$invoiceId/share-url',
+      );
+
+      final body = response.data;
+      if (body is! Map<String, dynamic>) {
+        throw StateError('Unexpected response shape');
+      }
+      final data = body['data'];
+      if (data is! Map) {
+        throw StateError('Missing `data` envelope');
+      }
+      final url = data['url'];
+      if (url is! String || url.isEmpty) {
+        throw StateError('Missing share url');
+      }
+      return url;
+    });
+  }
 }
 
 /// Build the multipart payload exactly the way Laravel's `StorePurchaseInvoiceRequest`
@@ -82,9 +105,11 @@ FormData buildFormData({
 
     for (var j = 0; j < item.pieces.length; j++) {
       final piece = item.pieces[j];
-      if (piece.weight != null) {
-        putString('items[$i][pieces][$j][weight]', piece.weight);
-      }
+      // Per-piece weight is now required by the backend (no even-split
+      // fallback). The provider's [itemsAreValid] guards this client-side;
+      // we still always emit the key so 422s correctly point at the missing
+      // field if the user somehow bypassed validation.
+      putString('items[$i][pieces][$j][weight]', piece.weight);
       final image = piece.image;
       if (image != null) {
         files.add(

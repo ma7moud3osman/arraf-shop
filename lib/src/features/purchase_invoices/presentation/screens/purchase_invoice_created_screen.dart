@@ -28,13 +28,18 @@ class PurchaseInvoiceCreatedScreen extends StatelessWidget {
   /// Injected for tests; defaults to the real launcher + share_plus.
   final SupplierShareService shareService;
 
-  /// Override for tests. In production we derive a Filament panel URL
-  /// from the API base URL since no public PDF endpoint exists yet (see
-  /// task #5 follow-up).
+  /// Override for tests. In production we use the pre-signed PDF URL the
+  /// backend includes on the create response (`pdf_share_url`). When
+  /// missing (e.g. older backend), we fall back to a Filament panel URL
+  /// derived from the API base host.
   final Uri? viewUrl;
 
   Uri _resolveViewUrl() {
     if (viewUrl != null) return viewUrl!;
+    final pdf = invoice.pdfShareUrl;
+    if (pdf != null && pdf.isNotEmpty) {
+      return Uri.parse(pdf);
+    }
     final base = AppConfig.baseUrl;
     final apiUri = Uri.parse(base);
     final root = apiUri.replace(path: '');

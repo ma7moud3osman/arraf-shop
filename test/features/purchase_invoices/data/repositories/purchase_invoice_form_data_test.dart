@@ -33,7 +33,7 @@ void main() {
           manufacturerFee: 120,
           pieces: [
             DraftPiece(weight: 12, image: imageA),
-            DraftPiece(image: imageB),
+            DraftPiece(weight: 13, image: imageB),
           ],
         ),
       ];
@@ -59,7 +59,8 @@ void main() {
         '2026-04-24',
       );
 
-      // Item + piece nesting.
+      // Item + piece nesting. Weight must be sent for EVERY piece (no
+      // even-split fallback on the server anymore).
       expect(
         fieldKeys,
         containsAll(<String>[
@@ -68,7 +69,12 @@ void main() {
           'items[0][quantity]',
           'items[0][manufacturer_fee]',
           'items[0][pieces][0][weight]',
+          'items[0][pieces][1][weight]',
         ]),
+      );
+      expect(
+        formData.fields.firstWhere((f) => f.key == 'items[0][pieces][1][weight]').value,
+        '13.0',
       );
 
       // Two image files at the expected nested keys.

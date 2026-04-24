@@ -74,6 +74,7 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
   void setSupplierName(String? value) {
     _supplierName =
         (value == null || value.trim().isEmpty) ? null : value.trim();
+    _safeNotify();
   }
 
   void setShopEmployeeId(int? value) {
@@ -169,21 +170,56 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
 
   /// Quick client-side check. Used by the wizard's "next" button to keep
   /// the user from hitting submit when something obviously isn't right.
-  bool get itemsAreValid {
-    if (_items.isEmpty) return false;
+  bool get itemsAreValid => submitBlockers.isEmpty;
+
+  /// Human-readable list of what's still missing — surfaced under the
+  /// submit button so users aren't left guessing why it's disabled.
+  ///
+  /// Returns an aggregated count list, e.g.
+  /// `['2 pieces missing image', '1 piece missing weight']`. Returns an
+  /// empty list when the form is ready to submit.
+  List<({String key, int count})> get submitBlockers {
+    if (_items.isEmpty) {
+      return const [(key: 'no_items', count: 1)];
+    }
+    var missingItem = 0;
+    var missingItemWeight = 0;
+    var missingPieceImage = 0;
+    var missingPieceWeight = 0;
+
     for (final item in _items) {
-      if (item.shopItem == null) return false;
-      if (item.weightGramsTotal <= 0) return false;
-      if (item.quantity < 1) return false;
-      if (item.pieces.length != item.quantity) return false;
-      // Backend may relax image requirement in non-prod, but UX treats it
-      // as required so users can't accidentally ship invoices without
-      // intake photos.
+      if (item.shopItem == null) {
+        missingItem += 1;
+      }
+      if (item.weightGramsTotal <= 0) {
+        missingItemWeight += 1;
+      }
+      if (item.pieces.length != item.quantity) {
+        // Pieces list is auto-resized; treat any mismatch as a blocker.
+        missingPieceWeight += 1;
+      }
       for (final piece in item.pieces) {
-        if (piece.image == null) return false;
+        if (piece.image == null) missingPieceImage += 1;
+        if (piece.weight == null || piece.weight! <= 0) {
+          missingPieceWeight += 1;
+        }
       }
     }
-    return true;
+
+    final blockers = <({String key, int count})>[];
+    if (missingItem > 0) {
+      blockers.add((key: 'missing_item', count: missingItem));
+    }
+    if (missingItemWeight > 0) {
+      blockers.add((key: 'missing_item_weight', count: missingItemWeight));
+    }
+    if (missingPieceImage > 0) {
+      blockers.add((key: 'missing_piece_image', count: missingPieceImage));
+    }
+    if (missingPieceWeight > 0) {
+      blockers.add((key: 'missing_piece_weight', count: missingPieceWeight));
+    }
+    return blockers;
   }
 
   // ── Submit ────────────────────────────────────────────────────────────

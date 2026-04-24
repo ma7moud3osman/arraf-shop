@@ -63,9 +63,9 @@ void main() {
 
   group('itemsAreValid', () {
     test(
-      'returns false until every required field is set + image attached',
+      'requires shop item, weight, image AND per-piece weight on every piece',
       () async {
-        // 2 items × 2 pieces with images.
+        // 2 items × 2 pieces.
         provider.addItem();
         for (final i in [0, 1]) {
           provider.setItemShopItem(i, makeItem(id: i + 1));
@@ -79,15 +79,53 @@ void main() {
         final file = await File('${tmpDir.path}/x.jpg').create();
         await file.writeAsBytes(const [0, 1, 2, 3]);
 
+        // Attach images on every piece — still missing per-piece weights.
         for (final i in [0, 1]) {
           for (final j in [0, 1]) {
             provider.setPieceImage(i, j, file);
           }
         }
+        expect(
+          provider.itemsAreValid,
+          isFalse,
+          reason: 'per-piece weight still missing',
+        );
+        expect(
+          provider.submitBlockers.any((b) => b.key == 'missing_piece_weight'),
+          isTrue,
+        );
 
+        // Fill weights on every piece — now valid.
+        for (final i in [0, 1]) {
+          for (final j in [0, 1]) {
+            provider.setPieceWeight(i, j, 5);
+          }
+        }
         expect(provider.itemsAreValid, isTrue);
+        expect(provider.submitBlockers, isEmpty);
       },
     );
+
+    test('blocks submit when any piece is missing image', () async {
+      provider.setItemShopItem(0, makeItem());
+      provider.setItemWeightTotal(0, 10);
+      provider.setItemQuantity(0, 2);
+
+      final tmpDir = await Directory.systemTemp.createTemp('piv_img_');
+      final file = await File('${tmpDir.path}/x.jpg').create();
+      await file.writeAsBytes(const [0, 1, 2]);
+
+      // Only the first piece has an image; both have weight.
+      provider.setPieceImage(0, 0, file);
+      provider.setPieceWeight(0, 0, 5);
+      provider.setPieceWeight(0, 1, 5);
+
+      expect(provider.itemsAreValid, isFalse);
+      final blocker = provider.submitBlockers.firstWhere(
+        (b) => b.key == 'missing_piece_image',
+      );
+      expect(blocker.count, 1);
+    });
   });
 
   group('submit', () {

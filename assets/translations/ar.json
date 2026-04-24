@@ -378,7 +378,17 @@
     "item_n": "الصنف {}",
     "piece_n": "القطعة {}",
     "pieces_label": "{} قطعة",
+    "pieces_sum_label": "المجموع: {} جم / {} جم",
     "piece_weight_hint": "وزن مخصص (اختياري)",
+    "piece_weight_required_hint": "الوزن (جم) — مطلوب",
+    "piece_weight_required": "الوزن مطلوب.",
+    "blocker": {
+      "no_items": "أضِف صنفًا واحدًا على الأقل.",
+      "missing_item": "{} صنف بدون تحديد من الكتالوج.",
+      "missing_item_weight": "{} صنف بدون وزن إجمالي.",
+      "missing_piece_image": "{} قطعة بدون صورة.",
+      "missing_piece_weight": "{} قطعة بدون وزن."
+    },
     "add_item": "إضافة صنف",
     "submit": "إنشاء الفاتورة",
     "review_intro": "راجِع بيانات الفاتورة. سيقوم الخادم بحساب الإجماليات النهائية بسعر الذهب الحالي.",

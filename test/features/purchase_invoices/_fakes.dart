@@ -39,12 +39,20 @@ class FakePurchaseInvoiceRepository implements PurchaseInvoiceRepository {
   PurchaseInvoiceDraftHeader? lastHeader;
   List<DraftItem>? lastItems;
   int createCalls = 0;
+  int fetchShareUrlCalls = 0;
+  int? lastFetchedShareUrlId;
 
   /// When non-null, [create] returns this failure instead of success.
   Failure? failure;
 
+  /// When non-null, [fetchShareUrl] returns this failure instead of success.
+  Failure? shareUrlFailure;
+
   /// Custom invoice to return; defaults to [PurchaseInvoice.fake].
   PurchaseInvoice? invoice;
+
+  /// Custom share URL to return from [fetchShareUrl].
+  String shareUrl = 'https://share.example/inv/99?signature=abc';
 
   @override
   FutureEither<PurchaseInvoice> create({
@@ -56,5 +64,13 @@ class FakePurchaseInvoiceRepository implements PurchaseInvoiceRepository {
     lastItems = items;
     if (failure != null) return Future.value(Left(failure!));
     return Future.value(Right(invoice ?? PurchaseInvoice.fake()));
+  }
+
+  @override
+  FutureEither<String> fetchShareUrl(int invoiceId) {
+    fetchShareUrlCalls += 1;
+    lastFetchedShareUrlId = invoiceId;
+    if (shareUrlFailure != null) return Future.value(Left(shareUrlFailure!));
+    return Future.value(Right(shareUrl));
   }
 }

@@ -89,6 +89,31 @@ void main() {
       expect(uri.queryParameters['text'], isNotEmpty);
     });
 
+    testWidgets('share URL is forwarded into "view PDF" launch', (
+      tester,
+    ) async {
+      final svc = _RecordingShareService();
+      final preSigned = Uri.parse(
+        'https://share.example/inv/42?signature=abc',
+      );
+      await tester.pumpWidget(
+        _wrap(
+          ShareInvoiceSheet(
+            invoice: invoice,
+            supplier: supplier,
+            viewUrl: preSigned,
+            shareService: svc,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('share_option_pdf')));
+      await tester.pump();
+
+      expect(svc.opened.single, preSigned);
+    });
+
     testWidgets('tapping native share calls shareText', (tester) async {
       final svc = _RecordingShareService();
       await tester.pumpWidget(

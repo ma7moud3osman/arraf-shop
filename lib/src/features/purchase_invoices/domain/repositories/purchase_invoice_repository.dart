@@ -35,4 +35,9 @@ abstract class PurchaseInvoiceRepository {
     required PurchaseInvoiceDraftHeader header,
     required List<DraftItem> items,
   });
+
+  /// `GET /api/shops/my/purchase-invoices/{id}/share-url`. Returns a pre-signed
+  /// PDF URL valid for 7 days. Used when re-sharing an existing invoice (the
+  /// create response already carries a fresh URL).
+  FutureEither<String> fetchShareUrl(int invoiceId);
 }

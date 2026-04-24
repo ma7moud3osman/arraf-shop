@@ -219,11 +219,39 @@ class _ItemRowCardState extends State<ItemRowCard> {
               ),
             ],
             SizedBox(height: 12.h),
-            Text(
-              'purchase_invoice.pieces_label'.tr(
-                args: ['${draft.pieces.length}'],
-              ),
-              style: tt.titleSmall,
+            Builder(
+              builder: (_) {
+                final piecesSum = draft.pieces.fold<double>(
+                  0,
+                  (s, p) => s + (p.weight ?? 0),
+                );
+                final mismatch =
+                    draft.weightGramsTotal > 0 &&
+                    (piecesSum - draft.weightGramsTotal).abs() > 0.01;
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'purchase_invoice.pieces_label'.tr(
+                          args: ['${draft.pieces.length}'],
+                        ),
+                        style: tt.titleSmall,
+                      ),
+                    ),
+                    Text(
+                      'purchase_invoice.pieces_sum_label'.tr(
+                        args: [
+                          piecesSum.toStringAsFixed(2),
+                          draft.weightGramsTotal.toStringAsFixed(2),
+                        ],
+                      ),
+                      style: tt.bodySmall?.copyWith(
+                        color: mismatch ? cs.error : cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             SizedBox(height: 8.h),
             for (int j = 0; j < draft.pieces.length; j++)
@@ -238,6 +266,8 @@ class _ItemRowCardState extends State<ItemRowCard> {
                     (w) => provider.setPieceWeight(widget.index, j, w),
                 imageError:
                     errors['items.${widget.index}.pieces.$j.image']?.first,
+                weightError:
+                    errors['items.${widget.index}.pieces.$j.weight']?.first,
               ),
           ],
         ),
@@ -255,6 +285,7 @@ class _PieceRow extends StatelessWidget {
     required this.onClearImage,
     required this.onWeightChanged,
     this.imageError,
+    this.weightError,
   });
 
   final int pieceIndex;
@@ -263,12 +294,15 @@ class _PieceRow extends StatelessWidget {
   final VoidCallback onClearImage;
   final ValueChanged<double?> onWeightChanged;
   final String? imageError;
+  final String? weightError;
 
   @override
   Widget build(BuildContext context) {
     final tt = context.theme.textTheme;
     final cs = context.theme.colorScheme;
     final hasImage = piece.image != null;
+    final missingWeight =
+        weightError != null || piece.weight == null || piece.weight! <= 0;
 
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
@@ -313,7 +347,7 @@ class _PieceRow extends StatelessWidget {
                 ),
                 SizedBox(height: 4.h),
                 AppTextField(
-                  hint: 'purchase_invoice.piece_weight_hint'.tr(),
+                  hint: 'purchase_invoice.piece_weight_required_hint'.tr(),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -323,6 +357,19 @@ class _PieceRow extends StatelessWidget {
                         v.isEmpty ? null : double.tryParse(v),
                       ),
                 ),
+                if (weightError != null) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    weightError!,
+                    style: tt.bodySmall?.copyWith(color: cs.error),
+                  ),
+                ] else if (missingWeight) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    'purchase_invoice.piece_weight_required'.tr(),
+                    style: tt.bodySmall?.copyWith(color: cs.error),
+                  ),
+                ],
                 if (imageError != null) ...[
                   SizedBox(height: 4.h),
                   Text(
