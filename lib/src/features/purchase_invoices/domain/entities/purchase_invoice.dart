@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-/// Slim post-create representation of a purchase invoice. Only the fields
-/// the success screen actually renders are modeled — the backend response
-/// is much richer.
+/// Slim representation of a purchase invoice. Used by both the post-create
+/// success screen and the detail screen — the backend response is much
+/// richer; we only model fields the UI renders.
 class PurchaseInvoice extends Equatable {
   final int id;
   final String? invoiceNumber;
@@ -14,7 +14,13 @@ class PurchaseInvoice extends Equatable {
   final String? notes;
   final DateTime? saleDate;
   final String? pdfShareUrl;
+  final bool isDraft;
+  final String? status;
+  final int? shopCustomerId;
+  final String? customerName;
+  final String? customerPhone;
   final List<PurchaseInvoiceItem> items;
+  final List<PurchaseInvoiceDraftItem> draftItems;
 
   const PurchaseInvoice({
     required this.id,
@@ -28,9 +34,22 @@ class PurchaseInvoice extends Equatable {
     this.notes,
     this.saleDate,
     this.pdfShareUrl,
+    this.isDraft = false,
+    this.status,
+    this.shopCustomerId,
+    this.customerName,
+    this.customerPhone,
+    this.draftItems = const [],
   });
 
-  factory PurchaseInvoice.fake({int id = 99, String? pdfShareUrl}) {
+  factory PurchaseInvoice.fake({
+    int id = 99,
+    String? pdfShareUrl,
+    bool isDraft = false,
+    List<PurchaseInvoiceItem>? items,
+    List<PurchaseInvoiceDraftItem>? draftItems,
+    String? customerName = 'El-Sayed Gold Trading',
+  }) {
     return PurchaseInvoice(
       id: id,
       invoiceNumber: 'INV-$id',
@@ -40,7 +59,13 @@ class PurchaseInvoice extends Equatable {
       paidAmount: 5000,
       paymentMethod: 'cash',
       pdfShareUrl: pdfShareUrl,
-      items: [PurchaseInvoiceItem.fake()],
+      isDraft: isDraft,
+      status: isDraft ? 'draft' : 'completed',
+      customerName: customerName,
+      shopCustomerId: customerName == null ? null : 1,
+      items: items ?? (isDraft ? const [] : [PurchaseInvoiceItem.fake()]),
+      draftItems:
+          draftItems ?? (isDraft ? [PurchaseInvoiceDraftItem.fake()] : const []),
     );
   }
 
@@ -54,7 +79,13 @@ class PurchaseInvoice extends Equatable {
     paidAmount,
     paymentMethod,
     pdfShareUrl,
+    isDraft,
+    status,
+    shopCustomerId,
+    customerName,
+    customerPhone,
     items,
+    draftItems,
   ];
 }
 
@@ -113,5 +144,58 @@ class PurchaseInvoiceItem extends Equatable {
     imageThumbUrl,
     barcode,
     costPrice,
+  ];
+}
+
+/// Pending line on a draft invoice — no per-piece weights/images yet.
+/// Mirrors the backend's `draft_items[]` payload.
+class PurchaseInvoiceDraftItem extends Equatable {
+  final int id;
+  final int shopItemId;
+  final String? shopItemLabel;
+  final String? karat;
+  final int quantity;
+  final double weightGramsTotal;
+  final double manufacturerFee;
+
+  const PurchaseInvoiceDraftItem({
+    required this.id,
+    required this.shopItemId,
+    required this.quantity,
+    required this.weightGramsTotal,
+    required this.manufacturerFee,
+    this.shopItemLabel,
+    this.karat,
+  });
+
+  factory PurchaseInvoiceDraftItem.fake({
+    int id = 1,
+    int shopItemId = 7,
+    String? shopItemLabel = 'Bracelets · Lazurde · 21K',
+    String? karat = '21',
+    int quantity = 2,
+    double weightGramsTotal = 25,
+    double manufacturerFee = 120,
+  }) {
+    return PurchaseInvoiceDraftItem(
+      id: id,
+      shopItemId: shopItemId,
+      shopItemLabel: shopItemLabel,
+      karat: karat,
+      quantity: quantity,
+      weightGramsTotal: weightGramsTotal,
+      manufacturerFee: manufacturerFee,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    shopItemId,
+    shopItemLabel,
+    karat,
+    quantity,
+    weightGramsTotal,
+    manufacturerFee,
   ];
 }

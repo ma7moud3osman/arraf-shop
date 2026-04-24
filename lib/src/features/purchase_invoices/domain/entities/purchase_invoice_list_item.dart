@@ -16,6 +16,7 @@ class PurchaseInvoiceListItem extends Equatable {
   final int? customerId;
   final int itemsCount;
   final String? firstImageThumbUrl;
+  final bool isDraft;
 
   const PurchaseInvoiceListItem({
     required this.id,
@@ -29,6 +30,7 @@ class PurchaseInvoiceListItem extends Equatable {
     this.customerName,
     this.customerId,
     this.firstImageThumbUrl,
+    this.isDraft = false,
   });
 
   factory PurchaseInvoiceListItem.fake({
@@ -37,6 +39,7 @@ class PurchaseInvoiceListItem extends Equatable {
     String? customerName = 'Ahmed Mostafa',
     double total = 1500,
     int itemsCount = 3,
+    bool isDraft = false,
   }) {
     return PurchaseInvoiceListItem(
       id: id,
@@ -45,10 +48,11 @@ class PurchaseInvoiceListItem extends Equatable {
       total: total,
       paidAmount: total,
       paymentMethod: 'cash',
-      status: 'completed',
+      status: isDraft ? 'draft' : 'completed',
       customerName: customerName,
       customerId: customerName == null ? null : 1,
       itemsCount: itemsCount,
+      isDraft: isDraft,
     );
   }
 
@@ -65,5 +69,6 @@ class PurchaseInvoiceListItem extends Equatable {
         customerId,
         itemsCount,
         firstImageThumbUrl,
+        isDraft,
       ];
 }

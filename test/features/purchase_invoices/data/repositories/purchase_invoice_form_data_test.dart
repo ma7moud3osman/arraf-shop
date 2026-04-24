@@ -86,4 +86,56 @@ void main() {
       expect(formData.files, hasLength(2));
     },
   );
+
+  test(
+    'buildFormData with includePieces=false omits pieces entirely (draft path)',
+    () async {
+      final tmpDir = await Directory.systemTemp.createTemp('piv_form_draft_');
+      final image = await File('${tmpDir.path}/a.jpg').create();
+      await image.writeAsBytes(const [0xFF, 0xD8, 0xFF]);
+
+      const header = PurchaseInvoiceDraftHeader(
+        shopCustomerId: 7,
+        paymentMethod: 'cash',
+      );
+
+      final items = [
+        DraftItem(
+          shopItem: ShopItem.fake(id: 11),
+          weightGramsTotal: 25,
+          quantity: 2,
+          manufacturerFee: 120,
+          // Even with pieces + images present locally, includePieces=false
+          // must skip them entirely for the draft endpoint.
+          pieces: [
+            DraftPiece(weight: 12, image: image),
+            const DraftPiece(weight: 13),
+          ],
+        ),
+      ];
+
+      final formData = buildFormData(
+        header: header,
+        items: items,
+        includePieces: false,
+      );
+      final fieldKeys = formData.fields.map((e) => e.key).toList();
+
+      expect(
+        fieldKeys,
+        containsAll(<String>[
+          'items[0][shop_item_id]',
+          'items[0][weight_grams_total]',
+          'items[0][quantity]',
+          'items[0][manufacturer_fee]',
+        ]),
+      );
+      expect(
+        fieldKeys.where((k) => k.contains('[pieces]')),
+        isEmpty,
+        reason: 'draft payload must not carry pieces',
+      );
+      expect(formData.files, isEmpty);
+    },
+  );
 }

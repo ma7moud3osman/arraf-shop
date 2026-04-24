@@ -49,4 +49,24 @@ abstract class PurchaseInvoiceRepository {
   /// PDF URL valid for 7 days. Used when re-sharing an existing invoice (the
   /// create response already carries a fresh URL).
   FutureEither<String> fetchShareUrl(int invoiceId);
+
+  /// `GET /api/shops/my/purchase-invoices/{id}` — single invoice detail.
+  /// Returns the full hydrated invoice (with items for completed, draft_items
+  /// for drafts).
+  FutureEither<PurchaseInvoice> fetch(int invoiceId);
+
+  /// `POST /api/shops/my/purchase-invoices/draft` — create a draft (Phase 1
+  /// only, no per-piece data). Body mirrors [create] minus the `pieces[]`.
+  FutureEither<PurchaseInvoice> createDraft({
+    required PurchaseInvoiceDraftHeader header,
+    required List<DraftItem> items,
+  });
+
+  /// `POST /api/shops/my/purchase-invoices/{id}/pieces` — complete a draft
+  /// (multipart) with the per-piece weights + images. Server validates that
+  /// items match the draft.
+  FutureEither<PurchaseInvoice> completeDraft({
+    required int invoiceId,
+    required List<DraftItem> items,
+  });
 }

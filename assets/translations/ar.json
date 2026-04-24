@@ -420,7 +420,27 @@
       "empty": "مفيش فواتير مشتريات لسه.",
       "search_hint": "دور برقم الفاتورة أو اسم المورد",
       "coming_soon": "تفاصيل الفاتورة قريبًا.",
-      "items_count_badge": "{} صنف"
+      "items_count_badge": "{} صنف",
+      "draft_badge": "مسودة",
+      "completed_badge": "مكتملة"
+    },
+    "detail": {
+      "title": "الفاتورة",
+      "items": "الأصناف",
+      "draft_items": "الأصناف المعلقة",
+      "total": "الإجمالي",
+      "paid": "المدفوع",
+      "customer": "المورّد",
+      "status": "الحالة",
+      "complete_cta": "إكمال الفاتورة",
+      "share_cta": "مشاركة",
+      "no_items": "مفيش أصناف على الفاتورة دي لسه."
+    },
+    "create": {
+      "save_draft": "حفظ كمسودة",
+      "continue_to_pieces": "متابعة إلى القطع",
+      "complete_invoice": "إنشاء الفاتورة",
+      "resume_mode_hint": "إنت بتكمل مسودة محفوظة. الهيدر والأصناف مقفولة — دخّل وزن وصورة كل قطعة عشان تخلص الفاتورة."
     },
     "home_subtitle": "سجّل مشتريات الذهب من المورّدين.",
     "step_header": "البيانات",

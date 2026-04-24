@@ -76,6 +76,64 @@ class FakePurchaseInvoiceRepository implements PurchaseInvoiceRepository {
     return Future.value(Right(shareUrl));
   }
 
+  // ── Detail (`fetch`) ────────────────────────────────────────────────
+  int fetchCalls = 0;
+  int? lastFetchId;
+  Failure? fetchFailure;
+  PurchaseInvoice? fetchInvoice;
+
+  @override
+  FutureEither<PurchaseInvoice> fetch(int invoiceId) {
+    fetchCalls += 1;
+    lastFetchId = invoiceId;
+    if (fetchFailure != null) return Future.value(Left(fetchFailure!));
+    return Future.value(Right(fetchInvoice ?? PurchaseInvoice.fake(id: invoiceId)));
+  }
+
+  // ── Drafts (`createDraft` / `completeDraft`) ────────────────────────
+  int createDraftCalls = 0;
+  int completeDraftCalls = 0;
+  PurchaseInvoiceDraftHeader? lastDraftHeader;
+  List<DraftItem>? lastDraftItems;
+  int? lastCompletedDraftId;
+  List<DraftItem>? lastCompleteItems;
+  Failure? createDraftFailure;
+  Failure? completeDraftFailure;
+  PurchaseInvoice? createDraftInvoice;
+  PurchaseInvoice? completeDraftInvoice;
+
+  @override
+  FutureEither<PurchaseInvoice> createDraft({
+    required PurchaseInvoiceDraftHeader header,
+    required List<DraftItem> items,
+  }) {
+    createDraftCalls += 1;
+    lastDraftHeader = header;
+    lastDraftItems = items;
+    if (createDraftFailure != null) {
+      return Future.value(Left(createDraftFailure!));
+    }
+    return Future.value(
+      Right(createDraftInvoice ?? PurchaseInvoice.fake(isDraft: true)),
+    );
+  }
+
+  @override
+  FutureEither<PurchaseInvoice> completeDraft({
+    required int invoiceId,
+    required List<DraftItem> items,
+  }) {
+    completeDraftCalls += 1;
+    lastCompletedDraftId = invoiceId;
+    lastCompleteItems = items;
+    if (completeDraftFailure != null) {
+      return Future.value(Left(completeDraftFailure!));
+    }
+    return Future.value(
+      Right(completeDraftInvoice ?? PurchaseInvoice.fake(id: invoiceId)),
+    );
+  }
+
   // ── List endpoint (owner-facing Invoices tab) ───────────────────────
   FutureEither<Paginated<PurchaseInvoiceListItem>> Function(
     int page,

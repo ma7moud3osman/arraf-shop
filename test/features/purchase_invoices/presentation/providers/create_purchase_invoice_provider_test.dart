@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:arraf_shop/src/features/audits/data/audit_failures.dart';
+import 'package:arraf_shop/src/utils/failure.dart';
+import 'package:arraf_shop/src/features/purchase_invoices/domain/entities/purchase_invoice.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/domain/entities/shop_item.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/presentation/providers/create_purchase_invoice_provider.dart';
 import 'package:arraf_shop/src/shared/enums/app_status.dart';
@@ -149,6 +151,131 @@ void main() {
       expect(provider.status, AppStatus.failure);
       expect(provider.errorMessage, 'Validation failed');
       expect(provider.validationErrors['items.0.shop_item_id'], ['required']);
+    });
+  });
+
+  group('saveDraft', () {
+    test('happy path: calls createDraft and stores the returned invoice',
+        () async {
+      provider.setItemShopItem(0, makeItem());
+      provider.setItemWeightTotal(0, 10);
+      provider.setItemQuantity(0, 2);
+      provider.setItemManufacturerFee(0, 100);
+
+      repo.createDraftInvoice = PurchaseInvoice.fake(id: 77, isDraft: true);
+
+      final ok = await provider.saveDraft();
+
+      expect(ok, isTrue);
+      expect(repo.createDraftCalls, 1);
+      expect(provider.saveDraftStatus, AppStatus.success);
+      expect(provider.created?.id, 77);
+      expect(provider.created?.isDraft, isTrue);
+      // No pieces in the draft payload — the repo only cares about items.
+      expect(repo.lastDraftItems, hasLength(1));
+    });
+
+    test('422: stores validation errors', () async {
+      repo.createDraftFailure = const ValidationFailure(
+        'oops',
+        errors: {
+          'items.0.weight_grams_total': ['required'],
+        },
+      );
+
+      final ok = await provider.saveDraft();
+
+      expect(ok, isFalse);
+      expect(provider.saveDraftStatus, AppStatus.failure);
+      expect(
+        provider.validationErrors['items.0.weight_grams_total'],
+        ['required'],
+      );
+    });
+  });
+
+  group('resume flow (loadDraft → complete)', () {
+    test('loadDraft switches to editingDraft mode, locks Phase 1 fields',
+        () async {
+      repo.fetchInvoice = PurchaseInvoice.fake(
+        id: 51,
+        isDraft: true,
+        draftItems: [
+          PurchaseInvoiceDraftItem.fake(
+            id: 1,
+            shopItemId: 9,
+            shopItemLabel: 'Bracelets · Lazurde · 21K',
+            karat: '21',
+            quantity: 2,
+            weightGramsTotal: 30,
+            manufacturerFee: 150,
+          ),
+        ],
+      );
+
+      final ok = await provider.loadDraft(51);
+
+      expect(ok, isTrue);
+      expect(provider.draftInvoiceId, 51);
+      expect(provider.mode, CreatePurchaseInvoiceMode.editingDraft);
+      expect(provider.isEditingDraft, isTrue);
+      expect(provider.items, hasLength(1));
+      expect(provider.items.first.shopItem?.id, 9);
+      expect(provider.items.first.weightGramsTotal, 30);
+      expect(provider.items.first.quantity, 2);
+      expect(provider.items.first.pieces, hasLength(2));
+
+      // Phase 1 mutators are ignored in editingDraft mode.
+      final before = provider.items.first;
+      provider.setItemWeightTotal(0, 99);
+      provider.addItem();
+      provider.removeItem(0);
+      expect(provider.items, hasLength(1));
+      expect(provider.items.first, before);
+    });
+
+    test('complete() calls completeDraft with draftInvoiceId', () async {
+      repo.fetchInvoice = PurchaseInvoice.fake(
+        id: 51,
+        isDraft: true,
+        draftItems: [PurchaseInvoiceDraftItem.fake()],
+      );
+      await provider.loadDraft(51);
+
+      // Fill per-piece weights so itemsAreValid allows complete.
+      for (var j = 0; j < provider.items.first.pieces.length; j++) {
+        provider.setPieceWeight(0, j, 10);
+      }
+
+      repo.completeDraftInvoice = PurchaseInvoice.fake(id: 51);
+
+      final ok = await provider.complete();
+
+      expect(ok, isTrue);
+      expect(repo.completeDraftCalls, 1);
+      expect(repo.lastCompletedDraftId, 51);
+      expect(provider.created?.id, 51);
+      expect(provider.created?.isDraft, isFalse);
+    });
+
+    test('loadDraft failure surfaces the error and stays in creating mode',
+        () async {
+      repo.fetchFailure = const ServerFailure('nope');
+      final ok = await provider.loadDraft(99);
+      expect(ok, isFalse);
+      expect(provider.mode, CreatePurchaseInvoiceMode.creating);
+      expect(provider.errorMessage, 'nope');
+    });
+  });
+
+  group('phaseOneIsValid', () {
+    test('false while an item is missing shopItem or weight, true when set',
+        () {
+      expect(provider.phaseOneIsValid, isFalse);
+      provider.setItemShopItem(0, makeItem());
+      expect(provider.phaseOneIsValid, isFalse, reason: 'weight is still 0');
+      provider.setItemWeightTotal(0, 10);
+      expect(provider.phaseOneIsValid, isTrue);
     });
   });
 }

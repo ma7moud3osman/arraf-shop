@@ -10,7 +10,9 @@ import 'package:arraf_shop/src/features/audits/presentation/screens/audits_list_
 import 'package:arraf_shop/src/features/gold_price/presentation/screens/gold_price_screen.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/domain/repositories/purchase_invoice_repository.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/presentation/providers/create_purchase_invoice_provider.dart';
+import 'package:arraf_shop/src/features/purchase_invoices/presentation/providers/purchase_invoice_detail_provider.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/presentation/screens/create_purchase_invoice_screen.dart';
+import 'package:arraf_shop/src/features/purchase_invoices/presentation/screens/purchase_invoice_detail_screen.dart';
 import 'package:arraf_shop/src/features/purchase_invoices/presentation/screens/purchase_invoices_list_screen.dart';
 import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:arraf_shop/src/features/auth/presentation/screens/forgot_password_screen.dart';
@@ -51,6 +53,7 @@ abstract final class AppRouteNames {
   static const goldPrice = 'goldPrice';
   static const createPurchaseInvoice = 'createPurchaseInvoice';
   static const purchaseInvoices = 'purchaseInvoices';
+  static const purchaseInvoiceDetail = 'purchaseInvoiceDetail';
 }
 
 /// Auth-gated paths. Anyone visiting these without a live session (owner
@@ -184,12 +187,35 @@ final GoRouter appRouter = GoRouter(
       name: AppRouteNames.createPurchaseInvoice,
       parentNavigatorKey: rootNavigatorKey,
       builder: (context, state) {
+        final draftIdRaw = state.uri.queryParameters['draftId'];
+        final draftId = draftIdRaw == null ? null : int.tryParse(draftIdRaw);
         return ChangeNotifierProvider(
           create:
               (ctx) => CreatePurchaseInvoiceProvider(
                 repository: ctx.read<PurchaseInvoiceRepository>(),
               ),
-          child: const CreatePurchaseInvoiceScreen(),
+          child: CreatePurchaseInvoiceScreen(draftId: draftId),
+        );
+      },
+    ),
+
+    // ── Purchase invoice detail (draft or completed) ─────────────────
+    // Lives outside the shell so it pushes over the bottom bar. The path
+    // is `/purchase-invoices/:id` — note it shares the `purchase-invoices`
+    // prefix with the list route inside the shell, but go_router routes
+    // the more-specific `:id` segment here.
+    GoRoute(
+      path: '${AppRoutes.purchaseInvoices}/:id',
+      name: AppRouteNames.purchaseInvoiceDetail,
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return ChangeNotifierProvider<PurchaseInvoiceDetailProvider>(
+          create: (ctx) => PurchaseInvoiceDetailProvider(
+            repository: ctx.read<PurchaseInvoiceRepository>(),
+            invoiceId: id,
+          ),
+          child: PurchaseInvoiceDetailScreen(invoiceId: id),
         );
       },
     ),

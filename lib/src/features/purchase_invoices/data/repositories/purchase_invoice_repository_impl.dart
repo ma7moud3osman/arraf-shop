@@ -104,6 +104,81 @@ class PurchaseInvoiceRepositoryImpl implements PurchaseInvoiceRepository {
   }
 
   @override
+  FutureEither<PurchaseInvoice> fetch(int invoiceId) {
+    return runDio<PurchaseInvoice>(tag: 'PurchaseInvoiceFetch', () async {
+      final response = await _dio.get<dynamic>(
+        'shops/my/purchase-invoices/$invoiceId',
+      );
+      final body = response.data;
+      if (body is! Map<String, dynamic>) {
+        throw StateError('Unexpected response shape');
+      }
+      final data = body['data'];
+      if (data is! Map) {
+        throw StateError('Missing `data` envelope');
+      }
+      return PurchaseInvoiceModel.fromJson(Map<String, dynamic>.from(data));
+    });
+  }
+
+  @override
+  FutureEither<PurchaseInvoice> createDraft({
+    required PurchaseInvoiceDraftHeader header,
+    required List<DraftItem> items,
+  }) {
+    return runDio<PurchaseInvoice>(tag: 'PurchaseInvoiceCreateDraft', () async {
+      final formData = buildFormData(
+        header: header,
+        items: items,
+        includePieces: false,
+      );
+      final response = await _dio.post<dynamic>(
+        'shops/my/purchase-invoices/draft',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      final body = response.data;
+      if (body is! Map<String, dynamic>) {
+        throw StateError('Unexpected response shape');
+      }
+      final data = body['data'];
+      if (data is! Map) {
+        throw StateError('Missing `data` envelope');
+      }
+      return PurchaseInvoiceModel.fromJson(Map<String, dynamic>.from(data));
+    });
+  }
+
+  @override
+  FutureEither<PurchaseInvoice> completeDraft({
+    required int invoiceId,
+    required List<DraftItem> items,
+  }) {
+    return runDio<PurchaseInvoice>(
+      tag: 'PurchaseInvoiceCompleteDraft',
+      () async {
+        // No header on this endpoint — server reuses the draft's header.
+        const header = PurchaseInvoiceDraftHeader();
+        final formData = buildFormData(header: header, items: items);
+        final response = await _dio.post<dynamic>(
+          'shops/my/purchase-invoices/$invoiceId/pieces',
+          data: formData,
+          options: Options(contentType: 'multipart/form-data'),
+        );
+        final body = response.data;
+        if (body is! Map<String, dynamic>) {
+          throw StateError('Unexpected response shape');
+        }
+        final data = body['data'];
+        if (data is! Map) {
+          throw StateError('Missing `data` envelope');
+        }
+        return PurchaseInvoiceModel.fromJson(Map<String, dynamic>.from(data));
+      },
+    );
+  }
+
+  @override
   FutureEither<String> fetchShareUrl(int invoiceId) {
     return runDio<String>(tag: 'PurchaseInvoiceShareUrl', () async {
       final response = await _dio.get<dynamic>(
@@ -137,6 +212,7 @@ class PurchaseInvoiceRepositoryImpl implements PurchaseInvoiceRepository {
 FormData buildFormData({
   required PurchaseInvoiceDraftHeader header,
   required List<DraftItem> items,
+  bool includePieces = true,
 }) {
   final fields = <MapEntry<String, String>>[];
   final files = <MapEntry<String, MultipartFile>>[];
@@ -165,6 +241,7 @@ FormData buildFormData({
     putString('items[$i][quantity]', item.quantity);
     putString('items[$i][manufacturer_fee]', item.manufacturerFee);
 
+    if (!includePieces) continue;
     for (var j = 0; j < item.pieces.length; j++) {
       final piece = item.pieces[j];
       // Per-piece weight is now required by the backend (no even-split

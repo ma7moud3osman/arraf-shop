@@ -11,6 +11,12 @@ import '../../domain/entities/shop_customer.dart';
 import '../../domain/entities/shop_item.dart';
 import '../../domain/repositories/purchase_invoice_repository.dart';
 
+/// Two phases the wizard can be in. In [creating] mode the user fills the
+/// header + items from scratch; in [editingDraft] mode the header + items
+/// were loaded from a server-side draft and are locked, and only per-piece
+/// data is editable.
+enum CreatePurchaseInvoiceMode { creating, editingDraft }
+
 /// Holds the wizard's draft (header + items) and orchestrates the
 /// multipart submit. UI binds to [items], [validationErrors], [status]
 /// and the named mutators.
@@ -20,6 +26,17 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
       _items = [const DraftItem()];
 
   final PurchaseInvoiceRepository _repository;
+
+  // ── Mode / draft id ───────────────────────────────────────────────────
+  CreatePurchaseInvoiceMode _mode = CreatePurchaseInvoiceMode.creating;
+  CreatePurchaseInvoiceMode get mode => _mode;
+  bool get isEditingDraft => _mode == CreatePurchaseInvoiceMode.editingDraft;
+
+  int? _draftInvoiceId;
+  int? get draftInvoiceId => _draftInvoiceId;
+
+  AppStatus _draftLoadStatus = AppStatus.initial;
+  AppStatus get draftLoadStatus => _draftLoadStatus;
 
   // ── Header ────────────────────────────────────────────────────────────
   ShopCustomer? _supplier;
@@ -51,6 +68,9 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
   AppStatus _status = AppStatus.initial;
   AppStatus get status => _status;
 
+  AppStatus _saveDraftStatus = AppStatus.initial;
+  AppStatus get saveDraftStatus => _saveDraftStatus;
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
@@ -64,52 +84,60 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
 
   // ── Header mutators ───────────────────────────────────────────────────
   void setSupplier(ShopCustomer? value) {
+    if (isEditingDraft) return;
     _supplier = value;
     _safeNotify();
   }
 
   void setShopEmployeeId(int? value) {
+    if (isEditingDraft) return;
     _shopEmployeeId = value;
     _safeNotify();
   }
 
-  // ignore: use_setters_to_change_properties
   void setDiscount(double? value) {
+    if (isEditingDraft) return;
     _discount = value;
   }
 
-  // ignore: use_setters_to_change_properties
   void setPaidAmount(double? value) {
+    if (isEditingDraft) return;
     _paidAmount = value;
   }
 
   void setPaymentMethod(String? value) {
+    if (isEditingDraft) return;
     _paymentMethod = value;
     _safeNotify();
   }
 
   void setNotes(String? value) {
+    if (isEditingDraft) return;
     _notes = (value == null || value.trim().isEmpty) ? null : value.trim();
   }
 
   void setSaleDate(DateTime? value) {
+    if (isEditingDraft) return;
     _saleDate = value;
     _safeNotify();
   }
 
   // ── Items mutators ────────────────────────────────────────────────────
   void addItem() {
+    if (isEditingDraft) return;
     _items.add(const DraftItem());
     _safeNotify();
   }
 
   void removeItem(int index) {
+    if (isEditingDraft) return;
     if (_items.length <= 1) return;
     _items.removeAt(index);
     _safeNotify();
   }
 
   void setItemShopItem(int index, ShopItem item) {
+    if (isEditingDraft) return;
     _items[index] = _items[index].copyWith(
       shopItem: item,
       manufacturerFee:
@@ -121,11 +149,13 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
   }
 
   void setItemWeightTotal(int index, double value) {
+    if (isEditingDraft) return;
     _items[index] = _items[index].copyWith(weightGramsTotal: value);
     _safeNotify();
   }
 
   void setItemQuantity(int index, int value) {
+    if (isEditingDraft) return;
     final clamped = value < 1 ? 1 : value;
     final current = _items[index];
     _items[index] = current.copyWith(
@@ -136,6 +166,7 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
   }
 
   void setItemManufacturerFee(int index, double value) {
+    if (isEditingDraft) return;
     _items[index] = _items[index].copyWith(manufacturerFee: value);
     _safeNotify();
   }
@@ -159,16 +190,24 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
 
   // ── Validation ────────────────────────────────────────────────────────
 
-  /// Quick client-side check. Used by the wizard's "next" button to keep
-  /// the user from hitting submit when something obviously isn't right.
+  /// Quick check used to enable/disable the "Continue" / "Create invoice"
+  /// CTAs based on per-piece data.
   bool get itemsAreValid => submitBlockers.isEmpty;
+
+  /// Phase 1 (header + items) validity — the "Save draft" / "Continue"
+  /// CTAs need at least a catalog item + total weight on every line.
+  bool get phaseOneIsValid {
+    if (_items.isEmpty) return false;
+    for (final item in _items) {
+      if (item.shopItem == null) return false;
+      if (item.weightGramsTotal <= 0) return false;
+      if (item.quantity < 1) return false;
+    }
+    return true;
+  }
 
   /// Human-readable list of what's still missing — surfaced under the
   /// submit button so users aren't left guessing why it's disabled.
-  ///
-  /// Returns an aggregated count list, e.g.
-  /// `['2 pieces missing image', '1 piece missing weight']`. Returns an
-  /// empty list when the form is ready to submit.
   List<({String key, int count})> get submitBlockers {
     if (_items.isEmpty) {
       return const [(key: 'no_items', count: 1)];
@@ -186,12 +225,9 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
         missingItemWeight += 1;
       }
       if (item.pieces.length != item.quantity) {
-        // Pieces list is auto-resized; treat any mismatch as a blocker.
         missingPieceWeight += 1;
       }
       for (final piece in item.pieces) {
-        // Image is required only in production builds — in debug we let
-        // the user submit without one to speed up local testing.
         if (!kDebugMode && piece.image == null) missingPieceImage += 1;
         if (piece.weight == null || piece.weight! <= 0) {
           missingPieceWeight += 1;
@@ -215,14 +251,112 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
     return blockers;
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────
-  Future<bool> submit() async {
-    _status = AppStatus.loading;
+  // ── Draft load / save ─────────────────────────────────────────────────
+
+  /// Load an existing server-side draft into the wizard and switch to
+  /// [CreatePurchaseInvoiceMode.editingDraft]. Header + items become
+  /// read-only; only per-piece weight + image are editable.
+  Future<bool> loadDraft(int invoiceId) async {
+    _draftLoadStatus = AppStatus.loading;
+    _errorMessage = null;
+    _safeNotify();
+
+    final result = await _repository.fetch(invoiceId);
+    var ok = false;
+    result.fold(
+      (Failure f) {
+        _draftLoadStatus = AppStatus.failure;
+        _errorMessage = f.message;
+      },
+      (PurchaseInvoice invoice) {
+        _draftInvoiceId = invoice.id;
+        _mode = CreatePurchaseInvoiceMode.editingDraft;
+        _supplier =
+            invoice.shopCustomerId == null
+                ? null
+                : ShopCustomer(
+                  id: invoice.shopCustomerId!,
+                  name: invoice.customerName ?? '',
+                  phone: invoice.customerPhone,
+                );
+        _paymentMethod = invoice.paymentMethod;
+        _discount = invoice.discount;
+        _paidAmount = invoice.paidAmount;
+        _notes = invoice.notes;
+        _saleDate = invoice.saleDate;
+        _items
+          ..clear()
+          ..addAll(_draftItemsToDraftItems(invoice.draftItems));
+        _draftLoadStatus = AppStatus.success;
+        ok = true;
+      },
+    );
+    _safeNotify();
+    return ok;
+  }
+
+  static List<DraftItem> _draftItemsToDraftItems(
+    List<PurchaseInvoiceDraftItem> draftItems,
+  ) {
+    return draftItems.map((d) {
+      // We don't have the full ShopItem hydrated client-side; build a minimal
+      // stub from the embedded shop_item summary so the row card can render
+      // its label.
+      final stub = ShopItem(
+        id: d.shopItemId,
+        shopId: 0,
+        karat: d.karat,
+        costFee: 0,
+        manufacturingFee: d.manufacturerFee,
+        minimumStockLevel: 0,
+        displayLabel: d.shopItemLabel ?? '#${d.shopItemId}',
+        stockOnHand: 0,
+      );
+      return DraftItem(
+        shopItem: stub,
+        weightGramsTotal: d.weightGramsTotal,
+        quantity: d.quantity,
+        manufacturerFee: d.manufacturerFee,
+        pieces: List<DraftPiece>.generate(d.quantity, (_) => const DraftPiece()),
+      );
+    }).toList();
+  }
+
+  /// `POST /api/shops/my/purchase-invoices/draft` — save Phase 1 only.
+  Future<bool> saveDraft() async {
+    _saveDraftStatus = AppStatus.loading;
     _errorMessage = null;
     _validationErrors = const {};
     _safeNotify();
 
-    final header = PurchaseInvoiceDraftHeader(
+    final header = _buildHeader();
+    final result = await _repository.createDraft(
+      header: header,
+      items: _items,
+    );
+
+    var ok = false;
+    result.fold(
+      (Failure f) {
+        _saveDraftStatus = AppStatus.failure;
+        _errorMessage = f.message;
+        if (f is ValidationFailure) {
+          _validationErrors = f.errors;
+        }
+      },
+      (PurchaseInvoice invoice) {
+        _created = invoice;
+        _saveDraftStatus = AppStatus.success;
+        ok = true;
+      },
+    );
+    _safeNotify();
+    return ok;
+  }
+
+  // ── Submit / Complete ─────────────────────────────────────────────────
+  PurchaseInvoiceDraftHeader _buildHeader() {
+    return PurchaseInvoiceDraftHeader(
       shopCustomerId: _supplier?.id,
       shopEmployeeId: _shopEmployeeId,
       discount: _discount,
@@ -231,8 +365,25 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
       notes: _notes,
       saleDate: _saleDate,
     );
+  }
 
-    final result = await _repository.create(header: header, items: _items);
+  /// Either creates a fresh invoice with pieces OR completes a previously
+  /// saved draft, depending on [mode].
+  Future<bool> complete() async {
+    _status = AppStatus.loading;
+    _errorMessage = null;
+    _validationErrors = const {};
+    _safeNotify();
+
+    final result = isEditingDraft
+        ? await _repository.completeDraft(
+            invoiceId: _draftInvoiceId!,
+            items: _items,
+          )
+        : await _repository.create(
+            header: _buildHeader(),
+            items: _items,
+          );
 
     var ok = false;
     result.fold(
@@ -253,10 +404,11 @@ class CreatePurchaseInvoiceProvider extends ChangeNotifier {
     return ok;
   }
 
-  // ── Internals ─────────────────────────────────────────────────────────
+  /// Backwards-compatible alias for [complete] — the original wizard call
+  /// site used [submit()].
+  Future<bool> submit() => complete();
 
-  /// Resize a pieces list to [target] preserving any existing entries at
-  /// the head and dropping (or padding) the tail.
+  // ── Internals ─────────────────────────────────────────────────────────
   static List<DraftPiece> _resizePieces(List<DraftPiece> current, int target) {
     if (current.length == target) return current;
     if (current.length > target) {

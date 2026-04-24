@@ -420,7 +420,27 @@
       "empty": "No purchase invoices yet.",
       "search_hint": "Search by invoice number or supplier",
       "coming_soon": "Invoice details coming soon.",
-      "items_count_badge": "{} items"
+      "items_count_badge": "{} items",
+      "draft_badge": "Draft",
+      "completed_badge": "Completed"
+    },
+    "detail": {
+      "title": "Invoice",
+      "items": "Items",
+      "draft_items": "Pending items",
+      "total": "Total",
+      "paid": "Paid",
+      "customer": "Supplier",
+      "status": "Status",
+      "complete_cta": "Complete invoice",
+      "share_cta": "Share",
+      "no_items": "No items on this invoice yet."
+    },
+    "create": {
+      "save_draft": "Save as draft",
+      "continue_to_pieces": "Continue to pieces",
+      "complete_invoice": "Create invoice",
+      "resume_mode_hint": "You're completing a saved draft. The header and items are locked — fill in the per-piece weights and photos to finalize."
     },
     "home_subtitle": "Record gold purchases from your suppliers.",
     "step_header": "Header",

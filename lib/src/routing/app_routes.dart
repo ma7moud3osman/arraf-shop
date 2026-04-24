@@ -33,8 +33,13 @@ abstract final class AppRoutes {
   static const String purchaseInvoices = '/purchase-invoices';
 
   /// Admin-only create-invoice wizard. Lives outside the shell so it
-  /// pushes over the bottom nav.
+  /// pushes over the bottom nav. Optional `?draftId=` query param resumes
+  /// an existing draft (skips Phase 1, locks the header + items).
   static const String createPurchaseInvoice = '/purchase-invoices/create';
+
+  /// `/purchase-invoices/:id` — single invoice detail (draft or completed).
+  /// Lives outside the shell so it pushes over the bottom bar.
+  static String purchaseInvoiceDetail(int id) => '/purchase-invoices/$id';
 
   // ── Audits ───────────────────────────────────────────────
   static const String audits = '/audits';

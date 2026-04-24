@@ -37,6 +37,34 @@ class PurchaseInvoiceItemModel extends PurchaseInvoiceItem {
   }
 }
 
+class PurchaseInvoiceDraftItemModel extends PurchaseInvoiceDraftItem {
+  const PurchaseInvoiceDraftItemModel({
+    required super.id,
+    required super.shopItemId,
+    required super.quantity,
+    required super.weightGramsTotal,
+    required super.manufacturerFee,
+    super.shopItemLabel,
+    super.karat,
+  });
+
+  factory PurchaseInvoiceDraftItemModel.fromJson(Map<String, dynamic> json) {
+    final shopItem = json['shop_item'];
+    final shopItemMap =
+        shopItem is Map ? Map<String, dynamic>.from(shopItem) : null;
+
+    return PurchaseInvoiceDraftItemModel(
+      id: parseInt(json['id']),
+      shopItemId: parseInt(json['shop_item_id']),
+      shopItemLabel: shopItemMap?['display_label'] as String?,
+      karat: shopItemMap?['karat']?.toString(),
+      quantity: parseInt(json['quantity']),
+      weightGramsTotal: parseDouble(json['weight_grams_total']),
+      manufacturerFee: parseDouble(json['manufacturing_fee'] ?? json['manufacturer_fee']),
+    );
+  }
+}
+
 class PurchaseInvoiceModel extends PurchaseInvoice {
   const PurchaseInvoiceModel({
     required super.id,
@@ -50,6 +78,12 @@ class PurchaseInvoiceModel extends PurchaseInvoice {
     super.notes,
     super.saleDate,
     super.pdfShareUrl,
+    super.isDraft,
+    super.status,
+    super.shopCustomerId,
+    super.customerName,
+    super.customerPhone,
+    super.draftItems,
   });
 
   factory PurchaseInvoiceModel.fromJson(Map<String, dynamic> json) {
@@ -66,6 +100,23 @@ class PurchaseInvoiceModel extends PurchaseInvoice {
                 .toList(growable: false)
             : const <PurchaseInvoiceItem>[];
 
+    final rawDraftItems = json['draft_items'];
+    final draftItems =
+        rawDraftItems is List
+            ? rawDraftItems
+                .whereType<Map<dynamic, dynamic>>()
+                .map(
+                  (m) => PurchaseInvoiceDraftItemModel.fromJson(
+                    Map<String, dynamic>.from(m),
+                  ),
+                )
+                .toList(growable: false)
+            : const <PurchaseInvoiceDraftItem>[];
+
+    final customer = json['customer'];
+    final customerMap =
+        customer is Map ? Map<String, dynamic>.from(customer) : null;
+
     return PurchaseInvoiceModel(
       id: parseInt(json['id']),
       invoiceNumber: json['invoice_number'] as String?,
@@ -77,7 +128,13 @@ class PurchaseInvoiceModel extends PurchaseInvoice {
       notes: json['notes'] as String?,
       saleDate: parseDateTime(json['sale_date']),
       pdfShareUrl: json['pdf_share_url'] as String?,
+      isDraft: json['is_draft'] == true,
+      status: json['status'] as String?,
+      shopCustomerId: parseIntOrNull(json['shop_customer_id']),
+      customerName: customerMap?['name'] as String?,
+      customerPhone: customerMap?['phone'] as String?,
       items: items,
+      draftItems: draftItems,
     );
   }
 }

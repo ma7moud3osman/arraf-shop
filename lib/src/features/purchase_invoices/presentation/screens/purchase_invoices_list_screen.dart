@@ -162,13 +162,16 @@ class _PurchaseInvoicesListScreenState
             hasMore: provider.hasMore,
           );
         }
+        final invoice = items[index];
         return _InvoiceTile(
-          invoice: items[index],
-          onTap: () => showToast(
-            context,
-            message: 'purchase_invoice.list.coming_soon'.tr(),
-            status: 'info',
-          ),
+          invoice: invoice,
+          onTap: () async {
+            await context.push(
+              AppRoutes.purchaseInvoiceDetail(invoice.id),
+            );
+            if (!context.mounted) return;
+            await context.read<PurchaseInvoicesListProvider>().refresh();
+          },
         );
       },
     );
@@ -276,6 +279,10 @@ class _InvoiceTile extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (invoice.isDraft) ...[
+                          _DraftBadge(),
+                          SizedBox(width: 6.w),
+                        ],
                         _CountBadge(count: invoice.itemsCount),
                       ],
                     ),
@@ -375,6 +382,27 @@ class _Thumbnail extends StatelessWidget {
             size: 22.sp,
             color: cs.onSurfaceVariant,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DraftBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: cs.tertiaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        'purchase_invoice.list.draft_badge'.tr(),
+        style: context.theme.textTheme.labelSmall?.copyWith(
+          color: cs.onTertiaryContainer,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

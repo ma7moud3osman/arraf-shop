@@ -14,6 +14,7 @@ class PurchaseInvoiceListItemModel extends PurchaseInvoiceListItem {
     super.customerName,
     super.customerId,
     super.firstImageThumbUrl,
+    super.isDraft,
   });
 
   factory PurchaseInvoiceListItemModel.fromJson(Map<String, dynamic> json) {
@@ -33,6 +34,7 @@ class PurchaseInvoiceListItemModel extends PurchaseInvoiceListItem {
       customerId: parseIntOrNull(customerMap?['id']),
       itemsCount: parseInt(json['items_count']),
       firstImageThumbUrl: json['first_image_thumb_url'] as String?,
+      isDraft: json['is_draft'] == true,
     );
   }
 }
