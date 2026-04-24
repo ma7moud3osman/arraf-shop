@@ -112,13 +112,20 @@ final GoRouter appRouter = GoRouter(
       name: AppRouteNames.splash,
       builder:
           (context, state) => AnimatedSplashScreen(
-            onComplete: () {
+            onComplete: () async {
+              // Wait for the auth provider's cold-start rehydrate before
+              // routing — otherwise we race secure-storage reads and
+              // bounce the user to login despite a valid persisted token.
+              final session = context.read<AuthProvider>();
+              while (session.isHydrating) {
+                await Future<void>.delayed(const Duration(milliseconds: 50));
+              }
+
               final onboardingDone =
                   StorageService.instance.getBool(
                     onboardingCompletedStorageKey,
                   ) ??
                   false;
-              final session = context.read<AuthProvider>();
 
               if (session.isAuthenticated) {
                 appRouter.go(AppRoutes.home);
