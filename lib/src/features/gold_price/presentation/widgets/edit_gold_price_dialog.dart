@@ -4,10 +4,10 @@ import '../../domain/entities/gold_price_snapshot.dart';
 
 /// Admin-only dialog for editing the gold price.
 ///
-/// Returns a `Map<String, double>` of field-name → new-value changes
-/// (only fields the admin actually touched), or `null` if cancelled.
-/// Reuses the backend field names verbatim so the caller can hand them
-/// straight to the repository.
+/// The shop's standard practice is to publish only the 21-karat anchor
+/// (buy + sale); the backend derives 18 / 22 / 24 karat values
+/// proportionally. Returns a `Map<String, double>` with exactly two keys
+/// (`karat_21_buy`, `karat_21_sale`), or `null` if cancelled.
 class EditGoldPriceDialog extends StatefulWidget {
   const EditGoldPriceDialog({super.key, required this.snapshot});
 
@@ -29,77 +29,85 @@ class EditGoldPriceDialog extends StatefulWidget {
 }
 
 class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
-  /// Only the karat/unit keys the admin endpoint accepts. Each row
-  /// renders both `_sale` and `_buy` inputs.
-  static const _editableKeys = <String>[
-    'karat_24',
-    'karat_22',
-    'karat_21',
-    'karat_18',
-    'ounce',
-    'pound',
-  ];
-
-  late final Map<String, TextEditingController> _sale;
-  late final Map<String, TextEditingController> _buy;
-  late final Map<String, double> _initialSale;
-  late final Map<String, double> _initialBuy;
+  late final TextEditingController _buyController;
+  late final TextEditingController _saleController;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _sale = {};
-    _buy = {};
-    _initialSale = {};
-    _initialBuy = {};
-
-    for (final key in _editableKeys) {
-      final item = widget.snapshot.itemByKey(key);
-      final saleValue = item?.sale ?? 0;
-      final buyValue = item?.buy ?? 0;
-      _initialSale[key] = saleValue;
-      _initialBuy[key] = buyValue;
-      _sale[key] = TextEditingController(text: saleValue.toStringAsFixed(2));
-      _buy[key] = TextEditingController(text: buyValue.toStringAsFixed(2));
-    }
+    final item = widget.snapshot.itemByKey('karat_21');
+    _buyController = TextEditingController(
+      text: (item?.buy ?? 0).toStringAsFixed(2),
+    );
+    _saleController = TextEditingController(
+      text: (item?.sale ?? 0).toStringAsFixed(2),
+    );
   }
 
   @override
   void dispose() {
-    for (final c in _sale.values) {
-      c.dispose();
-    }
-    for (final c in _buy.values) {
-      c.dispose();
-    }
+    _buyController.dispose();
+    _saleController.dispose();
     super.dispose();
   }
 
-  Map<String, double> _diff() {
-    final out = <String, double>{};
-    for (final key in _editableKeys) {
-      final newSale = double.tryParse(_sale[key]!.text.trim());
-      final newBuy = double.tryParse(_buy[key]!.text.trim());
-      if (newSale != null && newSale != _initialSale[key]) {
-        out['${key}_sale'] = newSale;
-      }
-      if (newBuy != null && newBuy != _initialBuy[key]) {
-        out['${key}_buy'] = newBuy;
-      }
-    }
-    return out;
+  String? _validate(String? raw) {
+    final trimmed = (raw ?? '').trim();
+    if (trimmed.isEmpty) return 'This field is required';
+    final value = double.tryParse(trimmed);
+    if (value == null) return 'Enter a valid number';
+    if (value <= 0) return 'Value must be greater than zero';
+    return null;
+  }
+
+  void _onSave() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final buy = double.parse(_buyController.text.trim());
+    final sale = double.parse(_saleController.text.trim());
+    Navigator.of(context).pop(<String, double>{
+      'karat_21_buy': buy,
+      'karat_21_sale': sale,
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit gold price'),
+      title: const Text('Edit 21K price'),
       content: SizedBox(
-        width: 420,
-        child: SingleChildScrollView(
+        width: 360,
+        child: Form(
+          key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: _editableKeys.map(_buildRow).toList(growable: false),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '18K, 22K, and 24K are derived automatically.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                key: const ValueKey('gold-price-21-buy'),
+                controller: _buyController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(labelText: '21K buy price'),
+                validator: _validate,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                key: const ValueKey('gold-price-21-sale'),
+                controller: _saleController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(labelText: '21K sale price'),
+                validator: _validate,
+              ),
+            ],
           ),
         ),
       ),
@@ -109,52 +117,10 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(context).pop(_diff()),
+          onPressed: _onSave,
           child: const Text('Save'),
         ),
       ],
-    );
-  }
-
-  Widget _buildRow(String key) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(key, style: const TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _sale[key],
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Sale',
-                    isDense: true,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _buy[key],
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Buy',
-                    isDense: true,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }
