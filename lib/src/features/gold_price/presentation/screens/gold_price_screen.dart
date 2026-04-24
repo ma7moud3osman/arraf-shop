@@ -155,7 +155,7 @@ class _PricePair extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          value.ceil().toString(),
+          '${value.ceil()} ${'gold_price.currency'.tr()}',
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
         ),
       ],

@@ -13,6 +13,7 @@
     "edit_action": "Edit",
     "buy": "Buy",
     "sell": "Sell",
+    "currency": "EGP",
     "updated_successfully": "Gold price updated.",
     "empty": "No gold price published yet.",
     "home_subtitle": "Live karat / unit prices, edited by admins.",
