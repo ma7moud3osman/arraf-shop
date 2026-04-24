@@ -7,6 +7,7 @@ import 'package:arraf_shop/src/features/audits/presentation/providers/audits_lis
 import 'package:arraf_shop/src/features/audits/presentation/screens/audit_session_screen.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audit_summary_screen.dart';
 import 'package:arraf_shop/src/features/audits/presentation/screens/audits_list_screen.dart';
+import 'package:arraf_shop/src/features/gold_price/presentation/screens/gold_price_screen.dart';
 import 'package:arraf_shop/src/features/auth/presentation/providers/auth_provider.dart';
 import 'package:arraf_shop/src/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:arraf_shop/src/features/auth/presentation/screens/login_screen.dart';
@@ -42,6 +43,7 @@ abstract final class AppRouteNames {
   static const attendance = 'attendance';
   static const payslips = 'payslips';
   static const employees = 'employees';
+  static const goldPrice = 'goldPrice';
 }
 
 /// Auth-gated paths. Anyone visiting these without a live session (owner
@@ -53,6 +55,7 @@ const Set<String> _authGatedPrefixes = {
   AppRoutes.attendance,
   AppRoutes.payslips,
   AppRoutes.employees,
+  AppRoutes.goldPrice,
 };
 
 bool _isAuthGated(String location) {
@@ -145,6 +148,14 @@ final GoRouter appRouter = GoRouter(
       name: AppRouteNames.payslips,
       parentNavigatorKey: rootNavigatorKey,
       builder: (context, state) => const PayslipsScreen(),
+    ),
+
+    // ── Gold price (everyone reads, admin edits) ─────────────────────
+    GoRoute(
+      path: AppRoutes.goldPrice,
+      name: AppRouteNames.goldPrice,
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => const GoldPriceScreen(),
     ),
 
     // ── Audit session + summary: push over the shell so the scanner

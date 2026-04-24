@@ -51,6 +51,10 @@ class AuthProvider extends ChangeNotifier {
   bool get isOwner => _actor?.isOwner ?? false;
   bool get isEmployee => _actor?.isEmployee ?? false;
 
+  /// True only for owners whose backend account is flagged as admin.
+  /// Drives admin-only UI such as the gold price editor.
+  bool get isAdmin => _actor?.user?.isAdmin ?? false;
+
   /// True during the initial cold-start cache lookup. The router guard
   /// uses this to avoid bouncing the user to /login before we've had a
   /// chance to read the saved token slot.
@@ -83,6 +87,7 @@ class AuthProvider extends ChangeNotifier {
               photoUrl:
                   (cached['photoUrl'] as String?) ??
                   (cached['image'] as String?),
+              isAdmin: _readBool(cached['is_admin']),
             ),
           );
           _status = SessionStatus.authenticated;
@@ -232,6 +237,15 @@ class AuthProvider extends ChangeNotifier {
     _status = SessionStatus.authenticated;
     _hydrating = false;
     notifyListeners();
+  }
+
+  /// Tolerant bool coerce for cached payloads (legacy caches may stringify
+  /// the value). Mirrors the helper in `AuthRepositoryImpl`.
+  static bool _readBool(Object? raw) {
+    if (raw is bool) return raw;
+    if (raw is num) return raw != 0;
+    if (raw is String) return raw == '1' || raw.toLowerCase() == 'true';
+    return false;
   }
 
   void _setUnauthenticated() {

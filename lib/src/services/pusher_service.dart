@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 
 import '../features/audits/domain/realtime/audit_realtime.dart';
+import '../features/gold_price/domain/realtime/gold_price_realtime.dart';
 import '../utils/utils.dart';
 import 'auth_endpoint_signer.dart';
 import 'session_expired_handler.dart';
@@ -28,7 +29,7 @@ import 'session_expired_handler.dart';
 ///
 /// Reconnect policy is delegated to the native Pusher SDK; we expose the
 /// state transitions so UI can react (banner, retry CTA).
-class PusherService implements AuditRealtime {
+class PusherService implements AuditRealtime, GoldPriceRealtime {
   PusherService._({
     PusherChannelsFlutter? pusher,
     AuthEndpointSigner? signer,
@@ -72,6 +73,11 @@ class PusherService implements AuditRealtime {
 
   /// Per-shop subscriber refcount, mirror of [_sessionRefCount].
   final Map<int, int> _shopRefCount = {};
+
+  /// Public gold-price channel fan-out (single channel, app-wide).
+  StreamController<GoldPriceUpdatedEvent>? _goldPriceController;
+  int _goldPriceRefCount = 0;
+  static const String goldPriceChannel = 'gold-price';
 
   final StreamController<RealtimeConnectionState> _connectionController =
       StreamController<RealtimeConnectionState>.broadcast();
@@ -233,6 +239,71 @@ class PusherService implements AuditRealtime {
     }
   }
 
+  // ── Gold price (public channel) ───────────────────────────────────
+  @override
+  Stream<GoldPriceUpdatedEvent> subscribeGoldPrice() {
+    final controller = _goldPriceController ??=
+        StreamController<GoldPriceUpdatedEvent>.broadcast();
+    final firstSubscriber = _goldPriceRefCount == 0;
+    _goldPriceRefCount += 1;
+
+    if (firstSubscriber) {
+      unawaited(_joinGoldPrice());
+    }
+
+    return controller.stream;
+  }
+
+  @override
+  Future<void> unsubscribeGoldPrice() async {
+    final remaining = _goldPriceRefCount - 1;
+    if (remaining > 0) {
+      _goldPriceRefCount = remaining;
+      return;
+    }
+
+    _goldPriceRefCount = 0;
+    final controller = _goldPriceController;
+    _goldPriceController = null;
+
+    if (_initialized) {
+      try {
+        await _pusher.unsubscribe(channelName: goldPriceChannel);
+      } catch (error, stack) {
+        AppLogger.error('Pusher unsubscribe failed for $goldPriceChannel', [
+          error,
+          stack,
+        ]);
+      }
+    }
+
+    await controller?.close();
+
+    if (_initialized && _isFullyIdle()) {
+      try {
+        await _pusher.disconnect();
+      } catch (error, stack) {
+        AppLogger.error('Pusher disconnect failed', [error, stack]);
+      }
+    }
+  }
+
+  Future<void> _joinGoldPrice() async {
+    try {
+      await _ensureInitialized();
+      await _pusher.subscribe(channelName: goldPriceChannel);
+    } catch (error, stack) {
+      AppLogger.error('Pusher subscribe failed for gold-price', [error, stack]);
+      _goldPriceController?.addError(error, stack);
+    }
+  }
+
+  bool _isFullyIdle() {
+    return _sessionControllers.isEmpty &&
+        _shopControllers.isEmpty &&
+        _goldPriceController == null;
+  }
+
   Future<void> _joinShop(int shopId) async {
     try {
       await _ensureInitialized();
@@ -292,6 +363,24 @@ class PusherService implements AuditRealtime {
         _dispatchScanEvent(event);
       case 'session.updated':
         _dispatchShopSessionEvent(event);
+      case 'price.updated':
+        _dispatchGoldPriceEvent(event);
+    }
+  }
+
+  void _dispatchGoldPriceEvent(PusherEvent event) {
+    if (event.channelName != goldPriceChannel) return;
+    final controller = _goldPriceController;
+    if (controller == null || controller.isClosed) return;
+
+    final payload = _decodePayload(event.data, 'price.updated');
+    if (payload == null) return;
+
+    try {
+      controller.add(GoldPriceUpdatedEvent.fromMap(payload));
+    } on FormatException catch (error, stack) {
+      AppLogger.error('Failed to parse GoldPriceUpdatedEvent', [error, stack]);
+      controller.addError(error, stack);
     }
   }
 
@@ -410,6 +499,11 @@ class PusherService implements AuditRealtime {
     }
     _shopControllers.clear();
     _shopRefCount.clear();
+    if (_goldPriceController != null) {
+      await _goldPriceController!.close();
+      _goldPriceController = null;
+      _goldPriceRefCount = 0;
+    }
     if (!_connectionController.isClosed) {
       await _connectionController.close();
     }

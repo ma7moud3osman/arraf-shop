@@ -6,6 +6,16 @@
   "splash": {
     "tagline": "ذهبٌ موثّق"
   },
+  "gold_price": {
+    "title": "سعر الذهب",
+    "edit_action": "تعديل",
+    "updated_successfully": "تم تحديث سعر الذهب.",
+    "empty": "لا توجد أسعار ذهب منشورة بعد.",
+    "home_subtitle": "أسعار العيارات والوحدات، يحدّثها المسؤول."
+  },
+  "errors": {
+    "generic": "حدث خطأ ما، يُرجى المحاولة مرة أخرى."
+  },
   "settings": {
     "title": "الإعدادات",
     "language": "اللغة",

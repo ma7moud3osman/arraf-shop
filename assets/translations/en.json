@@ -6,6 +6,16 @@
   "splash": {
     "tagline": "GOLD  ·  AUDITED"
   },
+  "gold_price": {
+    "title": "Gold price",
+    "edit_action": "Edit",
+    "updated_successfully": "Gold price updated.",
+    "empty": "No gold price published yet.",
+    "home_subtitle": "Live karat / unit prices, edited by admins."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again."
+  },
   "settings": {
     "title": "Settings",
     "language": "Language",

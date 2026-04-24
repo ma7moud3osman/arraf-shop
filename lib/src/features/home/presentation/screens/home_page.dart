@@ -40,6 +40,13 @@ class HomePage extends StatelessWidget {
             SizedBox(height: AppSpacing.xl),
             _SectionLabel(label: 'home.quick_actions'.tr()),
             SizedBox(height: AppSpacing.ms),
+            _FeatureCard(
+              icon: HugeIcons.strokeRoundedCoins01,
+              titleKey: 'gold_price.title',
+              subtitleKey: 'gold_price.home_subtitle',
+              onTap: () => context.push(AppRoutes.goldPrice),
+            ),
+            const _FeatureCardGap(),
             if (isEmployee) ...[
               _FeatureCard(
                 icon: HugeIcons.strokeRoundedFingerPrintCheck,

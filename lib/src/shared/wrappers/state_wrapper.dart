@@ -9,6 +9,10 @@ import '../../features/audits/presentation/providers/audits_list_provider.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/data/repositories/employee_auth_repository_impl.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/gold_price/data/repositories/gold_price_repository_impl.dart';
+import '../../features/gold_price/domain/realtime/gold_price_realtime.dart';
+import '../../features/gold_price/domain/repositories/gold_price_repository.dart';
+import '../../features/gold_price/presentation/providers/gold_price_provider.dart';
 import '../../features/payroll/data/repositories/payroll_repository_impl.dart';
 import '../../features/payroll/domain/repositories/payroll_repository.dart';
 import '../../features/payroll/presentation/providers/payroll_list_provider.dart';
@@ -42,6 +46,10 @@ class StateWrapper extends StatelessWidget {
           create: (_) => AttendanceRepositoryImpl(),
         ),
         Provider<PayrollRepository>(create: (_) => PayrollRepositoryImpl()),
+        Provider<GoldPriceRepository>(
+          create: (_) => GoldPriceRepositoryImpl(),
+        ),
+        Provider<GoldPriceRealtime>(create: (_) => PusherService.instance),
 
         // ── Auth (single source of truth for the signed-in actor) ──────
         ChangeNotifierProvider(
@@ -81,6 +89,14 @@ class StateWrapper extends StatelessWidget {
               (ctx) => PayrollListProvider(
                 repository: ctx.read<PayrollRepository>(),
               ),
+        ),
+
+        // ── Gold price (public realtime channel; admin-only writes) ────
+        ChangeNotifierProvider(
+          create: (ctx) => GoldPriceProvider(
+            repository: ctx.read<GoldPriceRepository>(),
+            realtime: ctx.read<GoldPriceRealtime>(),
+          ),
         ),
 
         // ── User preferences (theme + locale) ──────────────────────────

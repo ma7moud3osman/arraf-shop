@@ -18,6 +18,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: (userData['email'] as String?) ?? '',
         name: userData['name'] as String?,
         photoUrl: userData['photoUrl'] as String?,
+        isAdmin: _isAdminFromJson(userData),
       );
     });
   }
@@ -50,6 +51,7 @@ class AuthRepositoryImpl implements AuthRepository {
             email: (userRaw['email'] as String?) ?? '',
             name: userRaw['name'] as String?,
             photoUrl: userRaw['photoUrl'] as String?,
+            isAdmin: _isAdminFromJson(userRaw),
           );
           return right<Failure, AuthResult>(OwnerAuthResult(user));
 
@@ -112,6 +114,20 @@ class AuthRepositoryImpl implements AuthRepository {
     return _authService.logout();
   }
 
+  /// Tolerant parser: backend returns `is_admin` as a bool from
+  /// `UserResource`, but old caches / OAuth payloads may still carry the
+  /// `role` string. Accept either, default to false.
+  static bool _isAdminFromJson(Map<String, dynamic> raw) {
+    final flag = raw['is_admin'];
+    if (flag is bool) return flag;
+    if (flag is num) return flag != 0;
+    if (flag is String) {
+      return flag == '1' || flag.toLowerCase() == 'true';
+    }
+    final role = raw['role'];
+    return role is String && role == 'admin';
+  }
+
   @override
   FutureEither<AppUser?> checkAuthState() async {
     final result = await _authService.getCurrentUser();
@@ -124,6 +140,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: (userData['email'] as String?) ?? '',
         name: userData['name'] as String?,
         photoUrl: userData['photoUrl'] as String?,
+        isAdmin: _isAdminFromJson(userData),
       );
     });
   }

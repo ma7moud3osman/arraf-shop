@@ -23,6 +23,9 @@ abstract final class AppRoutes {
   // ── Admin-only ───────────────────────────────────────────
   static const String employees = '/employees';
 
+  // ── Gold price (read for everyone, edit for admin) ───────
+  static const String goldPrice = '/gold-price';
+
   // ── Audits ───────────────────────────────────────────────
   static const String audits = '/audits';
 
