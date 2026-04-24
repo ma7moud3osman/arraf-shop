@@ -446,7 +446,7 @@ String _money(BuildContext context, double v) {
 
 String _grams(double v) {
   final n = intl.NumberFormat.decimalPattern().format(v);
-  return '$n ${'purchase_invoice.g'.tr()}';
+  return '$n ${'units.g'.tr()}';
 }
 
 class _ItemGroupCard extends StatelessWidget {
