@@ -3,6 +3,13 @@ import 'package:arraf_shop/src/features/employees/domain/entities/employee_profi
 import 'package:arraf_shop/src/features/employees/presentation/providers/employee_detail_provider.dart';
 import 'package:arraf_shop/src/imports/core_imports.dart';
 import 'package:arraf_shop/src/imports/packages_imports.dart';
+import 'package:intl/intl.dart' as intl;
+
+String _formatMoney(double amount) {
+  final isWhole = amount == amount.truncateToDouble();
+  final pattern = isWhole ? '#,##0' : '#,##0.##';
+  return intl.NumberFormat(pattern).format(amount);
+}
 
 class EmployeeProfileTab extends StatelessWidget {
   const EmployeeProfileTab({super.key});
@@ -172,7 +179,7 @@ class _SummarySection extends StatelessWidget {
             color: cs.primaryContainer,
             valueColor: cs.onPrimaryContainer,
             label: 'employees.profile.base_salary'.tr(),
-            value: emp.baseSalary.toStringAsFixed(2),
+            value: _formatMoney(emp.baseSalary),
           ),
         ),
         SizedBox(width: AppSpacing.sm),

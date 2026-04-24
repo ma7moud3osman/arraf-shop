@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/gold_price_snapshot.dart';
@@ -54,10 +55,10 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
 
   String? _validate(String? raw) {
     final trimmed = (raw ?? '').trim();
-    if (trimmed.isEmpty) return 'This field is required';
+    if (trimmed.isEmpty) return 'gold_price.edit.required'.tr();
     final value = double.tryParse(trimmed);
-    if (value == null) return 'Enter a valid number';
-    if (value <= 0) return 'Value must be greater than zero';
+    if (value == null) return 'gold_price.edit.numeric'.tr();
+    if (value <= 0) return 'gold_price.edit.gt_zero'.tr();
     return null;
   }
 
@@ -74,7 +75,7 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Edit 21K price'),
+      title: Text('gold_price.edit.title'.tr()),
       content: SizedBox(
         width: 360,
         child: Form(
@@ -84,7 +85,7 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '18K, 22K, and 24K are derived automatically.',
+                'gold_price.edit.description'.tr(),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 16),
@@ -94,7 +95,9 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: '21K buy price'),
+                decoration: InputDecoration(
+                  labelText: 'gold_price.edit.karat_21_buy'.tr(),
+                ),
                 validator: _validate,
               ),
               const SizedBox(height: 12),
@@ -104,7 +107,9 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(labelText: '21K sale price'),
+                decoration: InputDecoration(
+                  labelText: 'gold_price.edit.karat_21_sale'.tr(),
+                ),
                 validator: _validate,
               ),
             ],
@@ -114,11 +119,11 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text('gold_price.edit.cancel'.tr()),
         ),
         FilledButton(
           onPressed: _onSave,
-          child: const Text('Save'),
+          child: Text('gold_price.edit.save'.tr()),
         ),
       ],
     );
