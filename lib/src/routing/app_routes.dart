@@ -26,6 +26,9 @@ abstract final class AppRoutes {
   // ── Gold price (read for everyone, edit for admin) ───────
   static const String goldPrice = '/gold-price';
 
+  // ── Purchase invoices (admin-only create flow) ───────────
+  static const String createPurchaseInvoice = '/purchase-invoices/create';
+
   // ── Audits ───────────────────────────────────────────────
   static const String audits = '/audits';
 

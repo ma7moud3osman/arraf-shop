@@ -173,9 +173,10 @@ final GoRouter appRouter = GoRouter(
       parentNavigatorKey: rootNavigatorKey,
       builder: (context, state) {
         return ChangeNotifierProvider(
-          create: (ctx) => CreatePurchaseInvoiceProvider(
-            repository: ctx.read<PurchaseInvoiceRepository>(),
-          ),
+          create:
+              (ctx) => CreatePurchaseInvoiceProvider(
+                repository: ctx.read<PurchaseInvoiceRepository>(),
+              ),
           child: const CreatePurchaseInvoiceScreen(),
         );
       },

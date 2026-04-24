@@ -82,6 +82,15 @@ class HomePage extends StatelessWidget {
                 subtitleKey: 'home.employees_subtitle',
                 onTap: () => context.go(AppRoutes.employees),
               ),
+              if (session.isAdmin) ...[
+                const _FeatureCardGap(),
+                _FeatureCard(
+                  icon: HugeIcons.strokeRoundedInvoice03,
+                  titleKey: 'purchase_invoice.title',
+                  subtitleKey: 'purchase_invoice.home_subtitle',
+                  onTap: () => context.push(AppRoutes.createPurchaseInvoice),
+                ),
+              ],
             ],
           ],
         ),
