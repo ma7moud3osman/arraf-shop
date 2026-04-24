@@ -39,10 +39,10 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
     super.initState();
     final item = widget.snapshot.itemByKey('karat_21');
     _buyController = TextEditingController(
-      text: (item?.buy ?? 0).toStringAsFixed(2),
+      text: (item?.buy ?? 0) > 0 ? item!.buy.toStringAsFixed(2) : '',
     );
     _saleController = TextEditingController(
-      text: (item?.sale ?? 0).toStringAsFixed(2),
+      text: (item?.sale ?? 0) > 0 ? item!.sale.toStringAsFixed(2) : '',
     );
   }
 
@@ -97,6 +97,7 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
                 ),
                 decoration: InputDecoration(
                   labelText: 'gold_price.edit.karat_21_buy'.tr(),
+                  hintText: '0.00',
                 ),
                 validator: _validate,
               ),
@@ -109,6 +110,7 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
                 ),
                 decoration: InputDecoration(
                   labelText: 'gold_price.edit.karat_21_sale'.tr(),
+                  hintText: '0.00',
                 ),
                 validator: _validate,
               ),
