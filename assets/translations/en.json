@@ -395,6 +395,16 @@
       "subtitle": "{} item(s) recorded.",
       "share": "Share with supplier",
       "done": "Done"
+    },
+    "share": {
+      "title": "Share invoice",
+      "whatsapp": "Send via WhatsApp",
+      "native": "Share…",
+      "view_pdf": "View invoice",
+      "no_phone_tooltip": "No supplier phone",
+      "subject": "Purchase invoice",
+      "message": "Purchase invoice {} — view it here: {}",
+      "launch_failed": "Could not open the share target."
     }
   }
 }

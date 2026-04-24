@@ -75,7 +75,10 @@ class _CreatePurchaseInvoiceScreenState
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder:
-              (_) => PurchaseInvoiceCreatedScreen(invoice: provider.created!),
+              (_) => PurchaseInvoiceCreatedScreen(
+                invoice: provider.created!,
+                supplier: provider.supplier,
+              ),
         ),
       );
     } else {
