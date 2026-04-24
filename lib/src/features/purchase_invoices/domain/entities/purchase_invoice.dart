@@ -97,6 +97,7 @@ class PurchaseInvoiceItem extends Equatable {
   final double manufacturingFee;
   final double unitTotal;
   final int? shopItemId;
+  final String? shopItemLabel;
   final String? imageUrl;
   final String? imageThumbUrl;
   final String? barcode;
@@ -110,6 +111,7 @@ class PurchaseInvoiceItem extends Equatable {
     required this.unitTotal,
     this.karat,
     this.shopItemId,
+    this.shopItemLabel,
     this.imageUrl,
     this.imageThumbUrl,
     this.barcode,

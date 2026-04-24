@@ -127,6 +127,55 @@ class _PurchaseInvoiceDetailScreenState
   }
 }
 
+/// Groups the flat list of pieces returned by the API back into the
+/// ShopItem buckets the panel originally created. Stable order: groups
+/// appear in the order their first piece appeared in the response.
+List<_ItemGroup> _groupByShopItem(List<PurchaseInvoiceItem> pieces) {
+  final byKey = <String, _ItemGroup>{};
+  final order = <String>[];
+  for (final p in pieces) {
+    final key = p.shopItemId?.toString() ?? 'piece-${p.id}';
+    final existing = byKey[key];
+    if (existing == null) {
+      byKey[key] = _ItemGroup(
+        keyId: key,
+        shopItemId: p.shopItemId,
+        label: p.shopItemLabel,
+        karat: p.karat,
+        manufacturingFee: p.manufacturingFee,
+        pieces: [p],
+      );
+      order.add(key);
+    } else {
+      existing.pieces.add(p);
+    }
+  }
+  return [for (final k in order) byKey[k]!];
+}
+
+class _ItemGroup {
+  _ItemGroup({
+    required this.keyId,
+    required this.shopItemId,
+    required this.label,
+    required this.karat,
+    required this.manufacturingFee,
+    required this.pieces,
+  });
+  final String keyId;
+  final int? shopItemId;
+  final String? label;
+  final String? karat;
+  final double manufacturingFee;
+  final List<PurchaseInvoiceItem> pieces;
+
+  double get totalWeight =>
+      pieces.fold<double>(0, (a, p) => a + p.weightGrams);
+  double get totalAmount =>
+      pieces.fold<double>(0, (a, p) => a + p.unitTotal);
+  int get quantity => pieces.length;
+}
+
 class _DetailContent extends StatelessWidget {
   const _DetailContent({required this.invoice, required this.onComplete});
 
@@ -173,10 +222,10 @@ class _DetailContent extends StatelessWidget {
             style: context.theme.textTheme.titleMedium,
           ),
           SizedBox(height: AppSpacing.sm),
-          for (final item in invoice.items)
+          for (final group in _groupByShopItem(invoice.items))
             Padding(
               padding: EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _ItemTile(item: item),
+              child: _ItemGroupCard(group: group),
             ),
           if (invoice.items.isEmpty)
             AppEmptyState(title: 'purchase_invoice.detail.no_items'.tr()),
@@ -390,128 +439,213 @@ class _DraftItemTile extends StatelessWidget {
   }
 }
 
-class _ItemTile extends StatelessWidget {
-  const _ItemTile({required this.item});
+String _money(BuildContext context, double v) {
+  final n = intl.NumberFormat.decimalPattern().format(v);
+  return '$n ${'gold_price.currency'.tr()}';
+}
 
-  final PurchaseInvoiceItem item;
+String _grams(double v) {
+  final n = intl.NumberFormat.decimalPattern().format(v);
+  return '$n ${'purchase_invoice.g'.tr()}';
+}
+
+class _ItemGroupCard extends StatelessWidget {
+  const _ItemGroupCard({required this.group});
+
+  final _ItemGroup group;
 
   @override
   Widget build(BuildContext context) {
     final tt = context.theme.textTheme;
     final cs = context.theme.colorScheme;
-    final thumb = item.imageThumbUrl ?? item.imageUrl;
     return AppCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-            GestureDetector(
-              onTap: thumb == null ? null : () => _openFullImage(context, thumb),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: thumb == null
-                    ? Container(
-                        width: 64.w,
-                        height: 64.w,
-                        color: cs.surfaceContainerHighest,
-                        alignment: Alignment.center,
-                        child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedImage01,
-                          size: 22.sp,
-                          color: cs.onSurfaceVariant,
-                        ),
-                      )
-                    : AppCachedImage(
-                        imageUrl: thumb,
-                        width: 64.w,
-                        height: 64.w,
-                        fit: BoxFit.cover,
-                      ),
+      padding: EdgeInsets.zero,
+      child: Theme(
+        // Remove ExpansionTile's default divider borders that look off
+        // inside AppCard's rounded container.
+        data: context.theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          childrenPadding: EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  group.label ?? '#${group.shopItemId ?? ''}',
+                  style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
               ),
-            ),
-            SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      if (item.karat != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: cs.primaryContainer,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            '${item.karat}K',
-                            style: tt.labelSmall?.copyWith(
-                              color: cs.onPrimaryContainer,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      const Spacer(),
-                      Text(
-                        '${item.weightGrams.toStringAsFixed(2)} g',
-                        style: tt.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
+              if (group.karat != null) ...[
+                SizedBox(width: 8.w),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
                   ),
-                  SizedBox(height: AppSpacing.xs),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'purchase_invoice.manufacturer_fee'.tr(),
-                          style: tt.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        item.manufacturingFee.toStringAsFixed(2),
-                        style: tt.bodySmall,
-                      ),
-                    ],
+                  decoration: BoxDecoration(
+                    color: cs.primaryContainer,
+                    borderRadius: BorderRadius.circular(999),
                   ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'purchase_invoice.detail.total'.tr(),
-                          style: tt.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        item.unitTotal.toStringAsFixed(2),
-                        style: tt.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: cs.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (item.barcode != null) ...[
-                    SizedBox(height: AppSpacing.xs),
-                    Text(
-                      item.barcode!,
-                      style: tt.labelSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
+                  child: Text(
+                    '${group.karat}K',
+                    style: tt.labelSmall?.copyWith(
+                      color: cs.onPrimaryContainer,
+                      fontWeight: FontWeight.w700,
                     ),
-                  ],
-                ],
-              ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          subtitle: Padding(
+            padding: EdgeInsets.only(top: 4.h),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              children: [
+                Text(
+                  'purchase_invoice.pieces_label'.tr(args: ['${group.quantity}']),
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
+                Text(
+                  _grams(group.totalWeight),
+                  style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                ),
+                Text(
+                  _money(context, group.totalAmount),
+                  style: tt.bodySmall?.copyWith(
+                    color: cs.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
+          ),
+          children: [
+            _KeyValue(
+              label: 'purchase_invoice.manufacturer_fee'.tr(),
+              value: _money(context, group.manufacturingFee),
+            ),
+            Divider(height: AppSpacing.lg, color: cs.outlineVariant),
+            for (var i = 0; i < group.pieces.length; i++) ...[
+              _PieceRow(index: i + 1, piece: group.pieces[i]),
+              if (i != group.pieces.length - 1)
+                Divider(height: AppSpacing.lg, color: cs.outlineVariant),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _KeyValue extends StatelessWidget {
+  const _KeyValue({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = context.theme.textTheme;
+    final cs = context.theme.colorScheme;
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ),
+          Text(
+            value,
+            style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PieceRow extends StatelessWidget {
+  const _PieceRow({required this.index, required this.piece});
+  final int index;
+  final PurchaseInvoiceItem piece;
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = context.theme.textTheme;
+    final cs = context.theme.colorScheme;
+    final thumb = piece.imageThumbUrl ?? piece.imageUrl;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: thumb == null ? null : () => _openFullImage(context, thumb),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: thumb == null
+                ? Container(
+                    width: 56.w,
+                    height: 56.w,
+                    color: cs.surfaceContainerHighest,
+                    alignment: Alignment.center,
+                    child: HugeIcon(
+                      icon: HugeIcons.strokeRoundedImage01,
+                      size: 20.sp,
+                      color: cs.onSurfaceVariant,
+                    ),
+                  )
+                : AppCachedImage(
+                    imageUrl: thumb,
+                    width: 56.w,
+                    height: 56.w,
+                    fit: BoxFit.cover,
+                  ),
+          ),
+        ),
+        SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'purchase_invoice.piece_n'.tr(args: ['$index']),
+                style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+              ),
+              SizedBox(height: 2.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _grams(piece.weightGrams),
+                      style: tt.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    _money(context, piece.unitTotal),
+                    style: tt.bodyMedium?.copyWith(
+                      color: cs.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
