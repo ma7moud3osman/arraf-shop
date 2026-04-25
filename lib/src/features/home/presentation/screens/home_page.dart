@@ -66,14 +66,14 @@ class HomePage extends StatelessWidget {
                 icon: HugeIcons.strokeRoundedClipboard,
                 titleKey: 'audits.list.title',
                 subtitleKey: 'home.audits_subtitle',
-                onTap: () => context.go(AppRoutes.audits),
+                onTap: () => context.push(AppRoutes.auditsView),
               ),
             ] else ...[
               _FeatureCard(
                 icon: HugeIcons.strokeRoundedClipboard,
                 titleKey: 'audits.list.title',
                 subtitleKey: 'home.audits_subtitle',
-                onTap: () => context.go(AppRoutes.audits),
+                onTap: () => context.push(AppRoutes.auditsView),
               ),
               const _FeatureCardGap(),
               _FeatureCard(

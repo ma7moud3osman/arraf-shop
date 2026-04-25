@@ -54,36 +54,41 @@ void main() {
       failingProvider.dispose();
     });
 
-    test('subscribes to realtime exactly once after first successful load',
-        () async {
-      await provider.load();
-      await provider.load();
+    test(
+      'subscribes to per-shop realtime exactly once after first successful load',
+      () async {
+        await provider.load();
+        await provider.load();
 
-      expect(realtime.subscribeCalls, 1);
-    });
+        expect(realtime.subscribeCalls, [1]);
+      },
+    );
 
-    test('realtime event for the same country replaces the snapshot', () async {
-      await provider.load();
+    test(
+      'realtime event for the subscribed shop replaces the snapshot',
+      () async {
+        await provider.load();
 
-      final pushed = makeSnapshot(
-        country: 'eg',
-        items: [makeItem(key: 'karat_21', sale: 9999, buy: 9900)],
-      );
-      realtime.emit(GoldPriceUpdatedEvent(snapshot: pushed));
+        final pushed = makeSnapshot(
+          shopId: 1,
+          items: [makeItem(key: 'karat_21', sale: 9999, buy: 9900)],
+        );
+        realtime.emit(GoldPriceUpdatedEvent(snapshot: pushed));
 
-      await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
-      final item = provider.snapshot!.itemByKey('karat_21');
-      expect(item, isNotNull);
-      expect(item!.sale, 9999);
-    });
+        final item = provider.snapshot!.itemByKey('karat_21');
+        expect(item, isNotNull);
+        expect(item!.sale, 9999);
+      },
+    );
 
-    test('realtime event for a different country is ignored', () async {
+    test('realtime event for a different shop is ignored', () async {
       await provider.load();
       final before = provider.snapshot;
 
       final foreign = makeSnapshot(
-        country: 'sa',
+        shopId: 999,
         items: [makeItem(key: 'karat_21', sale: 1)],
       );
       realtime.emit(GoldPriceUpdatedEvent(snapshot: foreign));
@@ -104,8 +109,8 @@ void main() {
     });
 
     test('update() failure surfaces the message', () async {
-      repo.updateHandler = (_, _) async =>
-          const Left(ForbiddenFailure('not allowed'));
+      repo.updateHandler =
+          (_) async => const Left(ForbiddenFailure('not allowed'));
 
       final error = await provider.update({'karat_21_sale': 1});
 
@@ -114,8 +119,7 @@ void main() {
     });
 
     test('clearUpdateStatus resets after a failure', () async {
-      repo.updateHandler = (_, _) async =>
-          const Left(ServerFailure('bad'));
+      repo.updateHandler = (_) async => const Left(ServerFailure('bad'));
       await provider.update({'karat_21_sale': 1});
       expect(provider.updateStatus, AppStatus.failure);
 
@@ -135,40 +139,41 @@ void main() {
       await localProvider.load();
       localProvider.dispose();
 
-      expect(localRealtime.unsubscribeCalls, 1);
+      expect(localRealtime.unsubscribeCalls, [1]);
       await localRealtime.close();
     });
   });
 
   group('GoldPriceUpdatedEvent.fromMap', () {
-    test('parses items + country + date', () {
-      final event = GoldPriceUpdatedEvent.fromMap({
-        'country': 'eg',
-        'date': '2026-04-24T12:34:56+00:00',
-        'items': [
-          {
-            'key': 'karat_21',
-            'title': '21',
-            'subtitle': 'EGP/g',
-            'sale': 4321,
-            'buy': 4300,
-            'diff': 5,
-            'diff_type': 'positive',
-            'is_dollar': false,
-          },
-        ],
+    test('parses shop_id + derived buy/sale + updated_at', () {
+      final event = GoldPriceUpdatedEvent.fromMap(const {
+        'shop_id': 7,
+        'updated_at': '2026-04-24T12:34:56+00:00',
+        'gold_price_21_buy': 4200,
+        'gold_price_21_sale': 4300,
+        'derived_buy': {'24': 4800, '22': 4400, '21': 4200, '18': 3600},
+        'derived_sale': {
+          '24': 4914.29,
+          '22': 4504.76,
+          '21': 4300,
+          '18': 3685.71,
+        },
       });
 
-      expect(event.snapshot.country, 'eg');
-      expect(event.snapshot.items, hasLength(1));
-      expect(event.snapshot.items.first.sale, 4321);
+      expect(event.snapshot.shopId, 7);
+      expect(event.snapshot.items, hasLength(4));
+      expect(event.snapshot.itemByKey('karat_21')!.sale, 4300);
+      expect(event.snapshot.itemByKey('karat_24')!.buy, 4800);
       expect(event.snapshot.updatedAt, isNotNull);
     });
 
-    test('tolerates missing date / items', () {
-      final event = GoldPriceUpdatedEvent.fromMap({'country': 'eg'});
-      expect(event.snapshot.items, isEmpty);
+    test('tolerates missing fields', () {
+      final event = GoldPriceUpdatedEvent.fromMap(const {});
+      // Items are still synthesized for all 4 karats, just with zero values.
+      expect(event.snapshot.items, hasLength(4));
+      expect(event.snapshot.items.first.sale, 0);
       expect(event.snapshot.updatedAt, isNull);
+      expect(event.snapshot.shopId, isNull);
     });
   });
 }

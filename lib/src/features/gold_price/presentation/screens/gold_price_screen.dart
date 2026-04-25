@@ -49,10 +49,7 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
     if (error != null) {
       showToast(context, message: error, status: 'error');
     } else {
-      showToast(
-        context,
-        message: 'gold_price.updated_successfully'.tr(),
-      );
+      showToast(context, message: 'gold_price.updated_successfully'.tr());
     }
   }
 
@@ -65,14 +62,15 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppTopBar(title: 'gold_price.title'.tr()),
-      floatingActionButton: auth.isAdmin && provider.snapshot != null
-          ? FloatingActionButton.extended(
-              key: const ValueKey('gold-price-edit-fab'),
-              onPressed: _openEditDialog,
-              icon: const Icon(Icons.edit_outlined),
-              label: Text('gold_price.edit_action'.tr()),
-            )
-          : null,
+      floatingActionButton:
+          auth.isAdmin && provider.snapshot != null
+              ? FloatingActionButton.extended(
+                key: const ValueKey('gold-price-edit-fab'),
+                onPressed: _openEditDialog,
+                icon: const Icon(Icons.edit_outlined),
+                label: Text('gold_price.edit_action'.tr()),
+              )
+              : null,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: provider.refresh,
@@ -180,20 +178,19 @@ class _GoldPriceTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: isAnchor
-            ? BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: cs.primary, width: 1),
-              )
-            : null,
+        decoration:
+            isAnchor
+                ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: cs.primary, width: 1),
+                )
+                : null,
         child: Row(
           children: [
             Expanded(
               child: Text(
                 item.title,
-                style: tt.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
             ),
             Column(

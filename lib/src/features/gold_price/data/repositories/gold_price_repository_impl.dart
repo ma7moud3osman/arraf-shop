@@ -12,64 +12,98 @@ import '../../domain/repositories/gold_price_repository.dart';
 
 /// Dio-backed implementation of [GoldPriceRepository].
 ///
-/// `GET /api/goldprice/today?is_list=1` returns the karat list used by the
-/// read screen; `PUT /api/gold-price` is the admin write endpoint added in
-/// the backend's gold price update feature.
+/// Talks to the per-shop endpoints introduced when the gold price moved
+/// from country-scoped to shop-scoped:
+///   * `GET /api/gold-price` returns the caller's shop 21K base + derived
+///     buy/sale maps;
+///   * `PUT /api/gold-price` updates the same row (no country, owner or
+///     admin only).
+///
+/// Both responses are adapted into [GoldPriceSnapshot] so the existing
+/// UI (which iterates `karat_18` … `karat_24` items) keeps working
+/// unchanged.
 class GoldPriceRepositoryImpl implements GoldPriceRepository {
   GoldPriceRepositoryImpl({Dio? dio}) : _dio = dio ?? AppConfig.dio;
 
   final Dio _dio;
 
+  static const List<String> _supportedKarats = ['24', '22', '21', '18'];
+
   @override
-  FutureEither<GoldPriceSnapshot> today({String country = 'eg'}) {
+  FutureEither<GoldPriceSnapshot> today() {
     return _run(() async {
-      final response = await _dio.get<dynamic>(
-        'goldprice/today',
-        queryParameters: {'country': country, 'is_list': 1},
-      );
-      final data = response.data;
-      final List<dynamic> rawItems = data is Map<String, dynamic>
-          ? (data['data'] as List? ?? const [])
-          : const [];
-      final items = rawItems
-          .whereType<Map<dynamic, dynamic>>()
-          .map((e) => GoldPriceItem.fromJson(Map<String, dynamic>.from(e)))
-          .toList(growable: false);
-      return GoldPriceSnapshot(
-        country: country,
-        updatedAt: DateTime.now(),
-        items: items,
-      );
+      final response = await _dio.get<dynamic>('gold-price');
+      return _snapshotFromEnvelope(response.data);
     });
   }
 
   @override
   FutureEither<GoldPriceSnapshot> update({
-    String country = 'eg',
     required Map<String, double> updates,
   }) {
     return _run(() async {
-      final response = await _dio.put<dynamic>(
-        'gold-price',
-        data: {'country': country, ...updates},
-      );
-
-      // The endpoint wraps the model with `GoldPriceResource`; the rich
-      // realtime payload (with formatted items) flows over Pusher.
-      // For the immediate HTTP response we ask `today` again so the
-      // returned snapshot uses the same shape consumed everywhere else.
-      final body = response.data;
-      if (body is Map<String, dynamic> &&
-          body['data'] is Map<String, dynamic>) {
-        // Best-effort: try to derive items from the resource if it carries a
-        // raw karat map. Otherwise fall back to a re-fetch.
-      }
-      final refreshed = await today(country: country);
-      return refreshed.match(
-        (failure) => throw _FailureBox(failure),
-        (snapshot) => snapshot,
-      );
+      final response = await _dio.put<dynamic>('gold-price', data: updates);
+      return _snapshotFromEnvelope(response.data);
     });
+  }
+
+  /// Adapts the `{status, message, data}` envelope returned by both the
+  /// GET and the PUT into [GoldPriceSnapshot]. Synthesises one
+  /// [GoldPriceItem] per supported karat from the `derived_buy` and
+  /// `derived_sale` maps the backend computes.
+  GoldPriceSnapshot _snapshotFromEnvelope(dynamic body) {
+    final envelope =
+        body is Map<String, dynamic> ? body : const <String, dynamic>{};
+    final data = envelope['data'];
+    final map = data is Map<String, dynamic> ? data : const <String, dynamic>{};
+
+    final derivedBuy = _doubleMap(map['derived_buy']);
+    final derivedSale = _doubleMap(map['derived_sale']);
+
+    final items = _supportedKarats
+        .map(
+          (karat) => GoldPriceItem(
+            key: 'karat_$karat',
+            title: karat,
+            subtitle: '',
+            sale: derivedSale[karat] ?? 0,
+            buy: derivedBuy[karat] ?? 0,
+            diff: 0,
+            diffType: 'positive',
+            isDollar: false,
+          ),
+        )
+        .toList(growable: false);
+
+    DateTime? updatedAt;
+    final raw = map['updated_at'];
+    if (raw is String && raw.isNotEmpty) {
+      updatedAt = DateTime.tryParse(raw)?.toLocal();
+    }
+
+    final shopId = map['shop_id'];
+
+    return GoldPriceSnapshot(
+      shopId: shopId is int ? shopId : (shopId is num ? shopId.toInt() : null),
+      updatedAt: updatedAt,
+      items: items,
+    );
+  }
+
+  static Map<String, double> _doubleMap(Object? raw) {
+    if (raw is! Map) return const {};
+    final out = <String, double>{};
+    raw.forEach((key, value) {
+      final stringKey = key?.toString();
+      if (stringKey == null) return;
+      if (value is num) {
+        out[stringKey] = value.toDouble();
+      } else if (value is String) {
+        final parsed = double.tryParse(value);
+        if (parsed != null) out[stringKey] = parsed;
+      }
+    });
+    return out;
   }
 
   // --- helpers (mirrors AuditRepositoryImpl._run / _failureFromError) ---

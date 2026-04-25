@@ -22,6 +22,11 @@ class App extends StatelessWidget {
     AppConfig.currentLocale = context.locale.languageCode;
 
     return MaterialApp.router(
+      // Keying the router on the active language code forces the entire
+      // app tree (including any cached AppBar titles) to rebuild when the
+      // user switches languages — otherwise the new locale only takes
+      // effect after a full app reload.
+      key: ValueKey(context.locale.languageCode),
       title: 'Arraf Shop',
       debugShowCheckedModeBanner: false,
       theme: buildLightTheme(primaryColorHex: '#f59e0b'),

@@ -66,27 +66,18 @@ class _WorkingWeekSectionState extends State<WorkingWeekSection> {
         borderRadius: BorderRadius.circular(18.r),
         border: Border.all(color: cs.outlineVariant),
       ),
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.all(AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 36.w,
-                height: 36.w,
-                decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                alignment: Alignment.center,
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedCalendar03,
-                  color: cs.primary,
-                  size: 20.sp,
-                ),
+              HugeIcon(
+                icon: HugeIcons.strokeRoundedCalendar03,
+                color: cs.primary,
+                size: 18.sp,
               ),
-              SizedBox(width: AppSpacing.md),
+              SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   'settings.working_week.title'.tr(),
@@ -96,43 +87,52 @@ class _WorkingWeekSectionState extends State<WorkingWeekSection> {
                   ),
                 ),
               ),
+              SizedBox(
+                height: 28.h,
+                child: AppButton(
+                  label: 'settings.working_week.save'.tr(),
+                  onPressed: provider.isDirty && !saving ? _save : null,
+                  isLoading: saving,
+                  height: ButtonSize.small,
+                ),
+              ),
             ],
           ),
-          SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.xs),
           Text(
             'settings.working_week.hint'.tr(),
-            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+            style: tt.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontSize: 11.sp,
+            ),
           ),
-          SizedBox(height: AppSpacing.md),
+          SizedBox(height: AppSpacing.sm),
           if (loading && provider.settings == null)
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
+              padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(child: CircularProgressIndicator()),
             )
           else
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            Row(
               children: [
-                for (final entry in _displayOrder)
-                  _DayChip(
-                    label:
-                        'settings.working_week.weekday.${entry.$2}'.tr(),
-                    isSelected:
-                        provider.draftWeeklyHolidays.contains(entry.$1),
-                    onTap: saving ? null : () => provider.toggle(entry.$1),
+                for (var i = 0; i < _displayOrder.length; i++) ...[
+                  if (i > 0) SizedBox(width: 4.w),
+                  Expanded(
+                    child: _DayChip(
+                      label:
+                          'settings.working_week.weekday.${_displayOrder[i].$2}'
+                              .tr(),
+                      isSelected: provider.draftWeeklyHolidays.contains(
+                        _displayOrder[i].$1,
+                      ),
+                      onTap: saving
+                          ? null
+                          : () => provider.toggle(_displayOrder[i].$1),
+                    ),
                   ),
+                ],
               ],
             ),
-          SizedBox(height: AppSpacing.md),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: AppButton(
-              label: 'settings.working_week.save'.tr(),
-              onPressed: provider.isDirty && !saving ? _save : null,
-              isLoading: saving,
-            ),
-          ),
         ],
       ),
     );
@@ -168,17 +168,18 @@ class _DayChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Container(
-          padding:
-              EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 10.h),
+          padding: EdgeInsets.symmetric(vertical: 6.h),
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             border: Border.all(color: border),
           ),
           child: Text(
             label,
-            style: tt.labelMedium?.copyWith(
+            style: tt.labelSmall?.copyWith(
               color: fg,
               fontWeight: FontWeight.w700,
+              fontSize: 10.sp,
             ),
           ),
         ),

@@ -66,10 +66,9 @@ class _EditGoldPriceDialogState extends State<EditGoldPriceDialog> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final buy = double.parse(_buyController.text.trim());
     final sale = double.parse(_saleController.text.trim());
-    Navigator.of(context).pop(<String, double>{
-      'karat_21_buy': buy,
-      'karat_21_sale': sale,
-    });
+    Navigator.of(
+      context,
+    ).pop(<String, double>{'karat_21_buy': buy, 'karat_21_sale': sale});
   }
 
   @override

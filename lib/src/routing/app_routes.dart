@@ -44,6 +44,11 @@ abstract final class AppRoutes {
   // ── Audits ───────────────────────────────────────────────
   static const String audits = '/audits';
 
+  /// Standalone audits-list route that pushes over the shell. Used from
+  /// the home screen so the list opens full-screen (no bottom nav).
+  /// `/audits` (the shell branch) stays for the bottom-nav tab.
+  static const String auditsView = '/audits-view';
+
   /// `/audits/:uuid` — audit session detail. Use instead of string-concat
   /// so a UUID containing unusual chars can't break the path.
   static String auditSession(String uuid) =>

@@ -44,6 +44,7 @@ abstract final class AppRouteNames {
   static const forgotPassword = 'forgotPassword';
   static const home = 'home';
   static const audits = 'audits';
+  static const auditsView = 'auditsView';
   static const auditSession = 'auditSession';
   static const auditSummary = 'auditSummary';
   static const settings = 'settings';
@@ -60,6 +61,7 @@ abstract final class AppRouteNames {
 /// OR employee) is bounced to `/onboarding`.
 const Set<String> _authGatedPrefixes = {
   AppRoutes.audits,
+  AppRoutes.auditsView,
   AppRoutes.home,
   AppRoutes.settings,
   AppRoutes.attendance,
@@ -218,6 +220,27 @@ final GoRouter appRouter = GoRouter(
           child: PurchaseInvoiceDetailScreen(invoiceId: id),
         );
       },
+    ),
+
+    // ── Standalone audits list: pushed from the home screen so it opens
+    // full-screen over the shell (no bottom nav). The `/audits` shell
+    // branch is still used by the employee bottom-nav tab.
+    GoRoute(
+      path: AppRoutes.auditsView,
+      name: AppRouteNames.auditsView,
+      parentNavigatorKey: rootNavigatorKey,
+      builder: (context, state) => AuditsListScreen(
+        isAdmin: context.read<AuthProvider>().isAdmin,
+        onOpen: (session) async {
+          final target = session.status == AuditStatus.completed
+              ? AppRoutes.auditSummary(session.uuid)
+              : AppRoutes.auditSession(session.uuid);
+          await context.push(target);
+          if (context.mounted) {
+            await context.read<AuditsListProvider>().refresh();
+          }
+        },
+      ),
     ),
 
     // ── Audit session + summary: push over the shell so the scanner

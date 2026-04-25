@@ -74,10 +74,28 @@ class PusherService implements AuditRealtime, GoldPriceRealtime {
   /// Per-shop subscriber refcount, mirror of [_sessionRefCount].
   final Map<int, int> _shopRefCount = {};
 
-  /// Public gold-price channel fan-out (single channel, app-wide).
-  StreamController<GoldPriceUpdatedEvent>? _goldPriceController;
-  int _goldPriceRefCount = 0;
-  static const String goldPriceChannel = 'gold-price';
+  /// Per-shop private gold-price channel fan-out (one channel per shop).
+  final Map<int, StreamController<GoldPriceUpdatedEvent>>
+  _goldPriceControllers = {};
+  final Map<int, int> _goldPriceRefCount = {};
+
+  /// Channel name for the per-shop gold-price feed (private).
+  static String goldPriceChannelFor(int shopId) =>
+      'private-shop.$shopId.gold-price';
+
+  /// Parse `private-shop.5.gold-price` back to `5`.
+  static int? goldPriceShopIdFromChannel(String channelName) {
+    const prefix = 'private-shop.';
+    const suffix = '.gold-price';
+    if (!channelName.startsWith(prefix) || !channelName.endsWith(suffix)) {
+      return null;
+    }
+    final inner = channelName.substring(
+      prefix.length,
+      channelName.length - suffix.length,
+    );
+    return int.tryParse(inner);
+  }
 
   final StreamController<RealtimeConnectionState> _connectionController =
       StreamController<RealtimeConnectionState>.broadcast();
@@ -239,38 +257,40 @@ class PusherService implements AuditRealtime, GoldPriceRealtime {
     }
   }
 
-  // ── Gold price (public channel) ───────────────────────────────────
+  // ── Gold price (per-shop private channel) ─────────────────────────
   @override
-  Stream<GoldPriceUpdatedEvent> subscribeGoldPrice() {
-    final controller = _goldPriceController ??=
-        StreamController<GoldPriceUpdatedEvent>.broadcast();
-    final firstSubscriber = _goldPriceRefCount == 0;
-    _goldPriceRefCount += 1;
+  Stream<GoldPriceUpdatedEvent> subscribeGoldPrice(int shopId) {
+    final controller = _goldPriceControllers.putIfAbsent(
+      shopId,
+      () => StreamController<GoldPriceUpdatedEvent>.broadcast(),
+    );
+    final firstSubscriber = (_goldPriceRefCount[shopId] ?? 0) == 0;
+    _goldPriceRefCount[shopId] = (_goldPriceRefCount[shopId] ?? 0) + 1;
 
     if (firstSubscriber) {
-      unawaited(_joinGoldPrice());
+      unawaited(_joinGoldPrice(shopId));
     }
 
     return controller.stream;
   }
 
   @override
-  Future<void> unsubscribeGoldPrice() async {
-    final remaining = _goldPriceRefCount - 1;
+  Future<void> unsubscribeGoldPrice(int shopId) async {
+    final remaining = (_goldPriceRefCount[shopId] ?? 0) - 1;
     if (remaining > 0) {
-      _goldPriceRefCount = remaining;
+      _goldPriceRefCount[shopId] = remaining;
       return;
     }
 
-    _goldPriceRefCount = 0;
-    final controller = _goldPriceController;
-    _goldPriceController = null;
+    _goldPriceRefCount.remove(shopId);
+    final controller = _goldPriceControllers.remove(shopId);
+    final channelName = goldPriceChannelFor(shopId);
 
     if (_initialized) {
       try {
-        await _pusher.unsubscribe(channelName: goldPriceChannel);
+        await _pusher.unsubscribe(channelName: channelName);
       } catch (error, stack) {
-        AppLogger.error('Pusher unsubscribe failed for $goldPriceChannel', [
+        AppLogger.error('Pusher unsubscribe failed for $channelName', [
           error,
           stack,
         ]);
@@ -288,20 +308,23 @@ class PusherService implements AuditRealtime, GoldPriceRealtime {
     }
   }
 
-  Future<void> _joinGoldPrice() async {
+  Future<void> _joinGoldPrice(int shopId) async {
     try {
       await _ensureInitialized();
-      await _pusher.subscribe(channelName: goldPriceChannel);
+      await _pusher.subscribe(channelName: goldPriceChannelFor(shopId));
     } catch (error, stack) {
-      AppLogger.error('Pusher subscribe failed for gold-price', [error, stack]);
-      _goldPriceController?.addError(error, stack);
+      AppLogger.error('Pusher subscribe failed for gold-price shop $shopId', [
+        error,
+        stack,
+      ]);
+      _goldPriceControllers[shopId]?.addError(error, stack);
     }
   }
 
   bool _isFullyIdle() {
     return _sessionControllers.isEmpty &&
         _shopControllers.isEmpty &&
-        _goldPriceController == null;
+        _goldPriceControllers.isEmpty;
   }
 
   Future<void> _joinShop(int shopId) async {
@@ -369,17 +392,21 @@ class PusherService implements AuditRealtime, GoldPriceRealtime {
   }
 
   void _dispatchGoldPriceEvent(PusherEvent event) {
-    if (event.channelName != goldPriceChannel) return;
-    final controller = _goldPriceController;
+    final shopId = goldPriceShopIdFromChannel(event.channelName);
+    if (shopId == null) return;
+    final controller = _goldPriceControllers[shopId];
     if (controller == null || controller.isClosed) return;
 
-    final payload = _decodePayload(event.data, 'price.updated');
+    final payload = _decodePayload(event.data, 'price.updated shop $shopId');
     if (payload == null) return;
 
     try {
       controller.add(GoldPriceUpdatedEvent.fromMap(payload));
     } on FormatException catch (error, stack) {
-      AppLogger.error('Failed to parse GoldPriceUpdatedEvent', [error, stack]);
+      AppLogger.error(
+        'Failed to parse GoldPriceUpdatedEvent for shop $shopId',
+        [error, stack],
+      );
       controller.addError(error, stack);
     }
   }
@@ -499,11 +526,11 @@ class PusherService implements AuditRealtime, GoldPriceRealtime {
     }
     _shopControllers.clear();
     _shopRefCount.clear();
-    if (_goldPriceController != null) {
-      await _goldPriceController!.close();
-      _goldPriceController = null;
-      _goldPriceRefCount = 0;
+    for (final controller in _goldPriceControllers.values) {
+      await controller.close();
     }
+    _goldPriceControllers.clear();
+    _goldPriceRefCount.clear();
     if (!_connectionController.isClosed) {
       await _connectionController.close();
     }
